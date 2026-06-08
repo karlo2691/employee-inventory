@@ -48,6 +48,7 @@
       --shadow: 0 1px 3px rgba(0,0,0,0.3); --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
     }
   }
+  html, body { overflow-x: hidden; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg-tertiary); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.5; transition: background .25s, color .25s; }
 
   /* Dark mode toggle button */
@@ -55,15 +56,15 @@
   .theme-btn:hover { background: var(--bg-tertiary); color: var(--text); border-color: var(--border-hover); }
 
   /* Header */
-  .header { background: var(--bg); border-bottom: 0.5px solid var(--border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 50; }
-  .header-left { display: flex; align-items: center; gap: 10px; }
-  .logo-mark { width: 28px; height: 28px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+  .header { background: var(--bg); border-bottom: 0.5px solid var(--border); padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 50; width: 100%; }
+  .header-left { display: flex; align-items: center; gap: 10px; min-width: 0; flex-shrink: 1; }
+  .logo-mark { width: 28px; height: 28px; background: var(--accent); border-radius: 6px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .logo-mark i { color: var(--accent-text); font-size: 14px; }
-  .app-name { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
-  .header-actions { display: flex; align-items: center; gap: 8px; }
+  .app-name { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; white-space: nowrap; }
+  .header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; flex-wrap: nowrap; }
 
   /* Main */
-  .main { max-width: 1600px; margin: 0 auto; padding: 2rem 2rem; }
+  .main { width: 100%; max-width: 100%; margin: 0 auto; padding: 1.5rem; }
 
   /* Toolbar */
   .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; flex-wrap: wrap; }
@@ -99,17 +100,23 @@
   .selection-bar-text { font-size: 13px; color: var(--info-text); font-weight: 500; flex: 1; }
 
   /* Table */
-  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); }
-  .table-scroll { overflow-x: auto; }
-  table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  thead th { background: var(--bg-secondary); font-weight: 500; font-size: 11px; color: var(--text-secondary); text-align: left; padding: 10px 14px; border-bottom: 0.5px solid var(--border); white-space: nowrap; letter-spacing: .03em; text-transform: uppercase; }
-  thead th.cb-col { width: 40px; }
+  .card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); width: 100%; }
+  .table-scroll { overflow-x: auto; width: 100%; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+  thead th { background: var(--bg-secondary); font-weight: 600; font-size: 10px; color: var(--text-secondary); text-align: left; padding: 9px 10px; border-bottom: 0.5px solid var(--border); white-space: nowrap; letter-spacing: .04em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; }
+  thead th.cb-col { width: 36px; }
+  thead th.act-col { width: 68px; }
+  thead th.pill-col { width: 62px; text-align: center; }
+  thead th.sm-col { width: 80px; }
+  thead th.md-col { width: 110px; }
+  thead th.lg-col { width: 140px; }
   tbody tr { border-bottom: 0.5px solid var(--border); transition: background .1s; }
   tbody tr:last-child { border-bottom: none; }
   tbody tr:hover { background: var(--bg-secondary); }
   tbody tr.selected { background: var(--info-bg); }
-  td { padding: 10px 14px; color: var(--text); vertical-align: middle; }
+  td { padding: 9px 10px; color: var(--text); vertical-align: middle; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   td.muted { color: var(--text-muted); }
+  td.pill-col { text-align: center; }
 
   /* Checkbox */
   input[type=checkbox] { width: 15px; height: 15px; cursor: pointer; accent-color: var(--accent); }
@@ -266,19 +273,19 @@
         <thead>
           <tr>
             <th class="cb-col"><input type="checkbox" id="selectAllChk" onchange="toggleSelectAll(this)" title="Select all"></th>
-            <th>Name</th>
-            <th>Device Name</th>
-            <th>Serial #</th>
-            <th>Manufacturer / Model</th>
-            <th>RAM</th>
-            <th>CPU</th>
-            <th>NtoN Email</th>
-            <th>3CX</th>
-            <th>Monday</th>
-            <th>Desktime</th>
-            <th>Nord</th>
-            <th>Krisp</th>
-            <th style="width:80px"></th>
+            <th class="lg-col">Name</th>
+            <th class="md-col">Device Name</th>
+            <th class="md-col">Serial #</th>
+            <th class="md-col">Maker / Model</th>
+            <th class="sm-col">RAM</th>
+            <th class="md-col">CPU</th>
+            <th class="pill-col">Email</th>
+            <th class="pill-col">3CX</th>
+            <th class="pill-col">Monday</th>
+            <th class="pill-col">Desktime</th>
+            <th class="pill-col">Nord</th>
+            <th class="pill-col">Krisp</th>
+            <th class="act-col"></th>
           </tr>
         </thead>
         <tbody id="tableBody"></tbody>
@@ -546,18 +553,18 @@ function renderTable() {
   tbody.innerHTML = filtered.map(r => `
     <tr class="${selectedIds.has(r.id)?'selected':''}">
       <td><input type="checkbox" ${selectedIds.has(r.id)?'checked':''} onchange="toggleSelect('${r.id}',this.checked)"></td>
-      <td><strong>${esc(r.name)||'<span style="color:var(--text-muted)">—</span>'}</strong></td>
-      <td>${esc(r.deviceName)||'<span class="muted">—</span>'}</td>
-      <td class="muted">${esc(r.serial)||'—'}</td>
-      <td>${esc(r.manufacturer)||''}${r.manufacturer&&r.model?' · ':''}${esc(r.model)||''}</td>
+      <td title="${esc(r.name)||''}"><strong>${esc(r.name)||'<span style="color:var(--text-muted)">—</span>'}</strong></td>
+      <td title="${esc(r.deviceName)||''}">${esc(r.deviceName)||'<span class="muted">—</span>'}</td>
+      <td class="muted" title="${esc(r.serial)||''}">${esc(r.serial)||'—'}</td>
+      <td title="${esc(r.manufacturer)||''}${r.manufacturer&&r.model?' · ':''}${esc(r.model)||''}">${esc(r.manufacturer)||''}${r.manufacturer&&r.model?' · ':''}${esc(r.model)||''}</td>
       <td>${esc(r.ram)||'<span class="muted">—</span>'}</td>
-      <td>${esc(r.cpu)||'<span class="muted">—</span>'}</td>
-      <td>${pill(r.ntonEmail)}</td>
-      <td>${pill(r.mfa3cx)}</td>
-      <td>${pill(r.mfaMonday)}</td>
-      <td>${pill(r.mfaDesktime)}</td>
-      <td>${pill(r.nord)}</td>
-      <td>${pill(r.krisp)}</td>
+      <td title="${esc(r.cpu)||''}">${esc(r.cpu)||'<span class="muted">—</span>'}</td>
+      <td class="pill-col">${pill(r.ntonEmail)}</td>
+      <td class="pill-col">${pill(r.mfa3cx)}</td>
+      <td class="pill-col">${pill(r.mfaMonday)}</td>
+      <td class="pill-col">${pill(r.mfaDesktime)}</td>
+      <td class="pill-col">${pill(r.nord)}</td>
+      <td class="pill-col">${pill(r.krisp)}</td>
       <td>
         <div class="actions">
           <button class="icon-btn" title="Edit" onclick="openModal('${r.id}')"><i class="ti ti-edit" aria-hidden="true"></i></button>
