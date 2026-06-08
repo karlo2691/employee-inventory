@@ -22,21 +22,37 @@
     --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
     --shadow-lg: 0 8px 24px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.06);
   }
+  html.dark {
+    --bg: #1c1c1a; --bg-secondary: #252523; --bg-tertiary: #181816;
+    --text: #f0efe8; --text-secondary: #a09f98; --text-muted: #6b6b66;
+    --border: rgba(255,255,255,0.10); --border-hover: rgba(255,255,255,0.22);
+    --accent: #f0efe8; --accent-text: #1c1c1a;
+    --success-bg: #173404; --success-text: #97C459;
+    --neutral-bg: #2C2C2A; --neutral-text: #B4B2A9;
+    --danger-bg: #501313; --danger-text: #F09595;
+    --info-bg: #042C53; --info-text: #85B7EB;
+    --warning-bg: #412402; --warning-text: #EF9F27;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3); --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
+  }
   @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #1c1c1a; --bg-secondary: #252523; --bg-tertiary: #2e2e2b;
+    html:not(.light) {
+      --bg: #1c1c1a; --bg-secondary: #252523; --bg-tertiary: #181816;
       --text: #f0efe8; --text-secondary: #a09f98; --text-muted: #6b6b66;
-      --border: rgba(255,255,255,0.10); --border-hover: rgba(255,255,255,0.20);
+      --border: rgba(255,255,255,0.10); --border-hover: rgba(255,255,255,0.22);
       --accent: #f0efe8; --accent-text: #1c1c1a;
       --success-bg: #173404; --success-text: #97C459;
       --neutral-bg: #2C2C2A; --neutral-text: #B4B2A9;
       --danger-bg: #501313; --danger-text: #F09595;
       --info-bg: #042C53; --info-text: #85B7EB;
       --warning-bg: #412402; --warning-text: #EF9F27;
-      --shadow: 0 1px 3px rgba(0,0,0,0.3); --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
+      --shadow: 0 1px 3px rgba(0,0,0,0.3); --shadow-lg: 0 8px 24px rgba(0,0,0,0.5);
     }
   }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg-tertiary); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.5; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg-tertiary); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.5; transition: background .25s, color .25s; }
+
+  /* Dark mode toggle button */
+  .theme-btn { cursor: pointer; border: 0.5px solid var(--border); background: var(--bg-secondary); color: var(--text-secondary); width: 34px; height: 34px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 16px; transition: background .15s, color .15s, border-color .15s; flex-shrink: 0; }
+  .theme-btn:hover { background: var(--bg-tertiary); color: var(--text); border-color: var(--border-hover); }
 
   /* Header */
   .header { background: var(--bg); border-bottom: 0.5px solid var(--border); padding: 0 2rem; display: flex; align-items: center; justify-content: space-between; height: 56px; position: sticky; top: 0; z-index: 50; }
@@ -47,7 +63,7 @@
   .header-actions { display: flex; align-items: center; gap: 8px; }
 
   /* Main */
-  .main { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+  .main { max-width: 1600px; margin: 0 auto; padding: 2rem 2rem; }
 
   /* Toolbar */
   .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; flex-wrap: wrap; }
@@ -114,21 +130,22 @@
   /* Modals */
   .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 1rem; opacity: 0; pointer-events: none; transition: opacity .2s; }
   .overlay.open { opacity: 1; pointer-events: all; }
-  .modal { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.75rem; width: 620px; max-width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); transform: translateY(12px); transition: transform .2s; }
+  .modal { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.75rem; width: 820px; max-width: 100%; max-height: 90vh; overflow-y: auto; box-shadow: var(--shadow-lg); transform: translateY(12px); transition: transform .2s; }
   .overlay.open .modal { transform: translateY(0); }
   .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; }
   .modal-header h2 { font-size: 16px; font-weight: 600; }
   .section-divider { font-size: 11px; font-weight: 600; color: var(--text-muted); letter-spacing: .06em; text-transform: uppercase; padding: 1rem 0 .75rem; border-top: 0.5px solid var(--border); margin-top: .5rem; }
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
   .form-group { display: flex; flex-direction: column; gap: 5px; }
   .form-group.full { grid-column: 1 / -1; }
   .form-group label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
-  .form-group input, .form-group select, .form-group textarea { padding: 8px 10px; border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--bg); color: var(--text); font-size: 13px; font-family: inherit; transition: border-color .15s; }
-  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--border-hover); }
-  .form-group textarea { resize: vertical; min-height: 72px; }
+  .form-group input, .form-group select, .form-group textarea { padding: 9px 12px; border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--bg); color: var(--text); font-size: 13px; font-family: inherit; transition: border-color .15s; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--border-hover); box-shadow: 0 0 0 3px rgba(0,0,0,0.05); }
+  html.dark .form-group input:focus, html.dark .form-group select:focus, html.dark .form-group textarea:focus { box-shadow: 0 0 0 3px rgba(255,255,255,0.06); }
+  .form-group textarea { resize: vertical; min-height: 80px; }
   .form-group input::placeholder { color: var(--text-muted); }
-  .toggle-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; grid-column: 1 / -1; }
-  .toggle-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg-secondary); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 9px 12px; font-size: 13px; }
+  .toggle-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; grid-column: 1 / -1; }
+  .toggle-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: var(--bg-secondary); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 12px 8px; font-size: 12px; text-align: center; }
   .toggle-switch { position: relative; width: 34px; height: 20px; flex-shrink: 0; }
   .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
   .slider { position: absolute; inset: 0; background: var(--border-hover); border-radius: 99px; cursor: pointer; transition: background .2s; }
@@ -146,7 +163,7 @@
   .confirm-list li:last-child { border-bottom: none; }
 
   /* Import modal */
-  .import-modal { width: 700px; }
+  .import-modal { width: 860px; }
   .drop-zone { border: 1.5px dashed var(--border-hover); border-radius: var(--radius-lg); padding: 2.5rem 1rem; text-align: center; cursor: pointer; transition: background .15s, border-color .15s; background: var(--bg-secondary); }
   .drop-zone:hover, .drop-zone.drag-over { background: var(--info-bg); border-color: var(--info-text); }
   .drop-zone i { font-size: 32px; color: var(--text-muted); display: block; margin-bottom: 10px; }
@@ -202,6 +219,7 @@
   </div>
   <div class="header-actions">
     <span class="badge" id="headerCount">0 employees</span>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode"><i class="ti ti-moon" id="themeIcon"></i></button>
     <button class="btn success" onclick="openImportModal()"><i class="ti ti-file-import"></i> <span>Import Excel</span></button>
     <button class="btn" onclick="downloadTemplate()"><i class="ti ti-download"></i> <span>Template</span></button>
     <button class="btn primary" onclick="openModal()"><i class="ti ti-plus"></i> <span>Add Employee</span></button>
@@ -791,7 +809,26 @@ function downloadTemplate() {
   showToast('Template downloaded','download');
 }
 
-/* ===== KEYBOARD ===== */
+/* ===== DARK MODE ===== */
+function getSystemDark() { return window.matchMedia('(prefers-color-scheme: dark)').matches; }
+function applyTheme(dark) {
+  document.documentElement.classList.toggle('dark', dark);
+  document.documentElement.classList.toggle('light', !dark);
+  const icon = document.getElementById('themeIcon');
+  if (icon) icon.className = dark ? 'ti ti-sun' : 'ti ti-moon';
+}
+function toggleTheme() {
+  const isDark = document.documentElement.classList.contains('dark') ||
+    (!document.documentElement.classList.contains('light') && getSystemDark());
+  const next = !isDark;
+  localStorage.setItem('devtrack_theme', next ? 'dark' : 'light');
+  applyTheme(next);
+}
+(function initTheme() {
+  const saved = localStorage.getItem('devtrack_theme');
+  const dark = saved === 'dark' || (!saved && getSystemDark());
+  applyTheme(dark);
+})();
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal(); closeConfirm(); closeImportModal(); } });
 
 renderTable();
