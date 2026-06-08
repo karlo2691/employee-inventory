@@ -1,0 +1,919 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Employee Device Inventory</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #ffffff;
+    --bg-secondary: #f5f5f3;
+    --bg-tertiary: #eeede9;
+    --text: #1a1a18;
+    --text-secondary: #6b6b66;
+    --text-muted: #9a9992;
+    --border: rgba(0,0,0,0.10);
+    --border-hover: rgba(0,0,0,0.20);
+    --accent: #1a1a18;
+    --accent-text: #ffffff;
+    --success-bg: #EAF3DE;
+    --success-text: #3B6D11;
+    --neutral-bg: #F1EFE8;
+    --neutral-text: #5F5E5A;
+    --danger-bg: #FCEBEB;
+    --danger-text: #A32D2D;
+    --info-bg: #E6F1FB;
+    --info-text: #185FA5;
+    --warning-bg: #FAEEDA;
+    --warning-text: #854F0B;
+    --radius: 8px;
+    --radius-lg: 12px;
+    --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.10), 0 2px 6px rgba(0,0,0,0.06);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1c1c1a;
+      --bg-secondary: #252523;
+      --bg-tertiary: #2e2e2b;
+      --text: #f0efe8;
+      --text-secondary: #a09f98;
+      --text-muted: #6b6b66;
+      --border: rgba(255,255,255,0.10);
+      --border-hover: rgba(255,255,255,0.20);
+      --accent: #f0efe8;
+      --accent-text: #1c1c1a;
+      --success-bg: #173404;
+      --success-text: #97C459;
+      --neutral-bg: #2C2C2A;
+      --neutral-text: #B4B2A9;
+      --danger-bg: #501313;
+      --danger-text: #F09595;
+      --info-bg: #042C53;
+      --info-text: #85B7EB;
+      --warning-bg: #412402;
+      --warning-text: #EF9F27;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
+    }
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: var(--bg-tertiary);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .header {
+    background: var(--bg);
+    border-bottom: 0.5px solid var(--border);
+    padding: 0 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky;
+    top: 0;
+    z-index: 50;
+  }
+  .header-left { display: flex; align-items: center; gap: 10px; }
+  .logo-mark {
+    width: 28px; height: 28px; background: var(--accent);
+    border-radius: 6px; display: flex; align-items: center; justify-content: center;
+  }
+  .logo-mark i { color: var(--accent-text); font-size: 14px; }
+  .app-name { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+  .header-actions { display: flex; align-items: center; gap: 8px; }
+
+  .main { max-width: 1200px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+  .toolbar {
+    display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; flex-wrap: wrap;
+  }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; }
+  .search-wrap i {
+    position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+    color: var(--text-muted); font-size: 15px; pointer-events: none;
+  }
+  .search-wrap input {
+    width: 100%; padding: 8px 12px 8px 32px;
+    border: 0.5px solid var(--border); border-radius: var(--radius);
+    background: var(--bg); color: var(--text);
+    font-size: 13px; font-family: inherit; transition: border-color .15s;
+  }
+  .search-wrap input:focus { outline: none; border-color: var(--border-hover); }
+
+  .badge {
+    font-size: 12px; padding: 5px 12px;
+    background: var(--bg); border: 0.5px solid var(--border);
+    border-radius: var(--radius); color: var(--text-secondary); white-space: nowrap;
+  }
+
+  .btn {
+    cursor: pointer; border: 0.5px solid var(--border);
+    background: var(--bg); color: var(--text);
+    padding: 8px 14px; border-radius: var(--radius);
+    font-size: 13px; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 6px;
+    transition: background .15s, border-color .15s; white-space: nowrap;
+  }
+  .btn:hover { background: var(--bg-secondary); border-color: var(--border-hover); }
+  .btn.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  .btn.primary:hover { opacity: .87; }
+  .btn.danger { color: var(--danger-text); border-color: var(--danger-text); }
+  .btn.danger:hover { background: var(--danger-bg); }
+  .btn.success { color: var(--success-text); border-color: var(--success-text); }
+  .btn.success:hover { background: var(--success-bg); }
+
+  .card {
+    background: var(--bg); border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow);
+  }
+  .table-scroll { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    background: var(--bg-secondary); font-weight: 500; font-size: 11px;
+    color: var(--text-secondary); text-align: left;
+    padding: 10px 14px; border-bottom: 0.5px solid var(--border);
+    white-space: nowrap; letter-spacing: .03em; text-transform: uppercase;
+  }
+  tbody tr { border-bottom: 0.5px solid var(--border); transition: background .1s; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--bg-secondary); }
+  td { padding: 10px 14px; color: var(--text); vertical-align: middle; }
+  td.muted { color: var(--text-muted); }
+
+  .pill { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 99px; font-weight: 500; white-space: nowrap; }
+  .pill.yes { background: var(--success-bg); color: var(--success-text); }
+  .pill.no  { background: var(--neutral-bg); color: var(--neutral-text); }
+
+  .actions { display: flex; gap: 2px; }
+  .icon-btn {
+    border: none; background: transparent; cursor: pointer;
+    padding: 5px 7px; border-radius: var(--radius);
+    color: var(--text-muted); font-size: 15px;
+    display: flex; align-items: center; transition: background .1s, color .1s;
+  }
+  .icon-btn:hover { background: var(--bg-secondary); color: var(--text); }
+  .icon-btn.del:hover { background: var(--danger-bg); color: var(--danger-text); }
+
+  .empty { text-align: center; padding: 4rem 1rem; color: var(--text-muted); }
+  .empty i { font-size: 36px; display: block; margin-bottom: 10px; opacity: .35; }
+  .empty p { font-size: 14px; }
+
+  /* Modal */
+  .overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.4);
+    z-index: 200; display: flex; align-items: center; justify-content: center;
+    padding: 1rem; opacity: 0; pointer-events: none; transition: opacity .2s;
+  }
+  .overlay.open { opacity: 1; pointer-events: all; }
+  .modal {
+    background: var(--bg); border: 0.5px solid var(--border);
+    border-radius: var(--radius-lg); padding: 1.75rem;
+    width: 620px; max-width: 100%; max-height: 90vh; overflow-y: auto;
+    box-shadow: var(--shadow-lg); transform: translateY(12px); transition: transform .2s;
+  }
+  .overlay.open .modal { transform: translateY(0); }
+  .modal-header {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem;
+  }
+  .modal-header h2 { font-size: 16px; font-weight: 600; }
+
+  .section-divider {
+    font-size: 11px; font-weight: 600; color: var(--text-muted);
+    letter-spacing: .06em; text-transform: uppercase;
+    padding: 1rem 0 .75rem; border-top: 0.5px solid var(--border); margin-top: .5rem;
+  }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+  .form-group input, .form-group select, .form-group textarea {
+    padding: 8px 10px; border: 0.5px solid var(--border);
+    border-radius: var(--radius); background: var(--bg);
+    color: var(--text); font-size: 13px; font-family: inherit; transition: border-color .15s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    outline: none; border-color: var(--border-hover);
+  }
+  .form-group textarea { resize: vertical; min-height: 72px; }
+  .form-group input::placeholder { color: var(--text-muted); }
+
+  .toggle-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; grid-column: 1 / -1; }
+  .toggle-item {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg-secondary); border: 0.5px solid var(--border);
+    border-radius: var(--radius); padding: 9px 12px; font-size: 13px;
+  }
+  .toggle-switch { position: relative; width: 34px; height: 20px; flex-shrink: 0; }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .slider {
+    position: absolute; inset: 0; background: var(--border-hover);
+    border-radius: 99px; cursor: pointer; transition: background .2s;
+  }
+  .slider::before {
+    content: ''; position: absolute; height: 14px; width: 14px;
+    left: 3px; bottom: 3px; background: white; border-radius: 50%;
+    transition: transform .2s; box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  }
+  .toggle-switch input:checked + .slider { background: #1D9E75; }
+  .toggle-switch input:checked + .slider::before { transform: translateX(14px); }
+
+  .modal-footer {
+    display: flex; justify-content: flex-end; gap: 8px;
+    margin-top: 1.5rem; padding-top: 1rem; border-top: 0.5px solid var(--border);
+  }
+
+  /* Import modal specific */
+  .import-modal { width: 700px; }
+
+  .drop-zone {
+    border: 1.5px dashed var(--border-hover);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+    background: var(--bg-secondary);
+  }
+  .drop-zone:hover, .drop-zone.drag-over {
+    background: var(--info-bg);
+    border-color: var(--info-text);
+  }
+  .drop-zone i { font-size: 32px; color: var(--text-muted); display: block; margin-bottom: 10px; }
+  .drop-zone.drag-over i { color: var(--info-text); }
+  .drop-zone p { font-size: 14px; color: var(--text-secondary); }
+  .drop-zone small { font-size: 12px; color: var(--text-muted); margin-top: 4px; display: block; }
+  #fileInput { display: none; }
+
+  .import-info {
+    background: var(--info-bg); border: 0.5px solid var(--info-text);
+    border-radius: var(--radius); padding: 10px 14px;
+    font-size: 13px; color: var(--info-text);
+    display: flex; align-items: flex-start; gap: 8px; margin-top: 1rem;
+  }
+  .import-info i { margin-top: 1px; flex-shrink: 0; }
+
+  .preview-table-wrap {
+    margin-top: 1rem;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden; max-height: 240px; overflow-y: auto;
+  }
+  .preview-table-wrap table { font-size: 12px; }
+  .preview-table-wrap thead th {
+    font-size: 10px; padding: 7px 10px; position: sticky; top: 0; z-index: 1;
+  }
+  .preview-table-wrap td { padding: 6px 10px; }
+
+  .import-summary {
+    display: flex; gap: 10px; margin-top: 1rem; flex-wrap: wrap;
+  }
+  .summary-chip {
+    padding: 5px 12px; border-radius: 99px; font-size: 12px; font-weight: 500;
+  }
+  .summary-chip.green { background: var(--success-bg); color: var(--success-text); }
+  .summary-chip.yellow { background: var(--warning-bg); color: var(--warning-text); }
+  .summary-chip.red { background: var(--danger-bg); color: var(--danger-text); }
+
+  .mapping-grid {
+    display: grid; grid-template-columns: 1fr 24px 1fr; gap: 8px 6px;
+    align-items: center; margin-top: 1rem; max-height: 260px; overflow-y: auto;
+  }
+  .mapping-grid .col-label { font-size: 12px; font-weight: 500; }
+  .mapping-grid .arrow { color: var(--text-muted); font-size: 13px; text-align: center; }
+  .mapping-grid select {
+    padding: 6px 8px; border: 0.5px solid var(--border);
+    border-radius: var(--radius); background: var(--bg); color: var(--text);
+    font-size: 12px; font-family: inherit; width: 100%;
+  }
+  .mapping-grid select:focus { outline: none; border-color: var(--border-hover); }
+
+  /* Steps */
+  .import-steps { display: flex; gap: 0; margin-bottom: 1.5rem; }
+  .step {
+    flex: 1; text-align: center; font-size: 12px; color: var(--text-muted);
+    padding-bottom: 10px; border-bottom: 2px solid var(--border); position: relative;
+  }
+  .step.active { color: var(--text); border-color: var(--accent); font-weight: 500; }
+  .step.done { color: var(--success-text); border-color: var(--success-text); }
+  .step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--bg-secondary); font-size: 11px; font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .step.active .step-num { background: var(--accent); color: var(--accent-text); }
+  .step.done .step-num { background: var(--success-bg); color: var(--success-text); }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%);
+    background: var(--accent); color: var(--accent-text);
+    padding: 10px 18px; border-radius: var(--radius);
+    font-size: 13px; display: flex; align-items: center; gap: 8px;
+    box-shadow: var(--shadow-lg); z-index: 999;
+    opacity: 0; transition: opacity .25s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+
+  @media (max-width: 640px) {
+    .header { padding: 0 1rem; }
+    .main { padding: 1rem; }
+    .form-grid { grid-template-columns: 1fr; }
+    .form-group.full { grid-column: 1; }
+    .toggle-grid { grid-template-columns: 1fr 1fr; }
+    .header-actions .btn span { display: none; }
+    .mapping-grid { grid-template-columns: 1fr 16px 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <div class="logo-mark"><i class="ti ti-device-laptop"></i></div>
+    <div><div class="app-name">DeviceTrack</div></div>
+  </div>
+  <div class="header-actions">
+    <span class="badge" id="headerCount">0 employees</span>
+    <button class="btn success" onclick="openImportModal()">
+      <i class="ti ti-file-import"></i> <span>Import Excel</span>
+    </button>
+    <button class="btn" onclick="downloadTemplate()">
+      <i class="ti ti-download"></i> <span>Template</span>
+    </button>
+    <button class="btn primary" onclick="openModal()">
+      <i class="ti ti-plus"></i> <span>Add Employee</span>
+    </button>
+  </div>
+</header>
+
+<main class="main">
+  <div class="toolbar">
+    <div class="search-wrap">
+      <i class="ti ti-search" aria-hidden="true"></i>
+      <input type="text" id="searchInput" placeholder="Search by name, device, serial number…" oninput="renderTable()">
+    </div>
+    <span class="badge" id="countBadge">0 records</span>
+  </div>
+
+  <div class="card">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Device Name</th>
+            <th>Serial #</th>
+            <th>Manufacturer / Model</th>
+            <th>RAM</th>
+            <th>CPU</th>
+            <th>NtoN Email</th>
+            <th>3CX</th>
+            <th>Monday</th>
+            <th>Desktime</th>
+            <th>Nord</th>
+            <th>Krisp</th>
+            <th style="width:80px"></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<!-- Edit/Add Modal -->
+<div class="overlay" id="overlay" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 id="modalTitle">Add Employee</h2>
+      <button class="icon-btn" onclick="closeModal()" aria-label="Close"><i class="ti ti-x"></i></button>
+    </div>
+    <div class="form-grid" id="formGrid"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancel</button>
+      <button class="btn primary" onclick="saveRecord()"><i class="ti ti-check"></i> Save Record</button>
+    </div>
+  </div>
+</div>
+
+<!-- Import Modal -->
+<div class="overlay" id="importOverlay" onclick="handleImportOverlayClick(event)">
+  <div class="modal import-modal" id="importModal" role="dialog" aria-modal="true" aria-labelledby="importTitle" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 id="importTitle">Import from Excel</h2>
+      <button class="icon-btn" onclick="closeImportModal()" aria-label="Close"><i class="ti ti-x"></i></button>
+    </div>
+
+    <div class="import-steps" id="importSteps">
+      <div class="step active" id="step1el"><div class="step-num">1</div><div>Upload file</div></div>
+      <div class="step" id="step2el"><div class="step-num">2</div><div>Map columns</div></div>
+      <div class="step" id="step3el"><div class="step-num">3</div><div>Preview & import</div></div>
+    </div>
+
+    <div id="importStep1">
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()"
+        ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+        <i class="ti ti-file-spreadsheet" aria-hidden="true"></i>
+        <p>Drop your Excel file here, or click to browse</p>
+        <small>Supports .xlsx, .xls, .csv files</small>
+      </div>
+      <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" onchange="handleFileSelect(event)">
+      <div class="import-info" style="margin-top:1rem">
+        <i class="ti ti-info-circle" aria-hidden="true"></i>
+        <div>
+          Your spreadsheet can have columns in any order — you'll map them to fields in the next step.
+          Download the <strong>Template</strong> for a ready-made column structure.
+        </div>
+      </div>
+    </div>
+
+    <div id="importStep2" style="display:none">
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:.75rem">
+        Match each column in your file to an inventory field. Unneeded columns can be left as <em>— Skip —</em>.
+      </p>
+      <div class="mapping-grid" id="mappingGrid"></div>
+    </div>
+
+    <div id="importStep3" style="display:none">
+      <div class="import-summary" id="importSummary"></div>
+      <div class="preview-table-wrap" id="previewWrap"></div>
+    </div>
+
+    <div class="modal-footer" id="importFooter">
+      <button class="btn" onclick="closeImportModal()">Cancel</button>
+      <button class="btn" id="importBackBtn" style="display:none" onclick="importBack()">
+        <i class="ti ti-arrow-left"></i> Back
+      </button>
+      <button class="btn primary" id="importNextBtn" onclick="importNext()" disabled>
+        Next <i class="ti ti-arrow-right"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <i class="ti ti-check"></i> <span id="toastMsg"></span>
+</div>
+
+<script>
+/* ===== DATA DEFINITIONS ===== */
+const FIELDS = [
+  { section: 'Employee & Device Info' },
+  { key: 'name',         label: 'Name',                type: 'text', placeholder: 'Full name' },
+  { key: 'deviceName',   label: 'Device Name',         type: 'text', placeholder: 'e.g. MacBook Pro 14"' },
+  { key: 'serial',       label: 'Serial Number',       type: 'text', placeholder: 'e.g. C02XG2JHJGH5' },
+  { key: 'manufacturer', label: 'Device Manufacturer', type: 'text', placeholder: 'e.g. Apple, Dell, Lenovo' },
+  { key: 'model',        label: 'Device Model',        type: 'text', placeholder: 'e.g. MBP M2 Pro' },
+  { key: 'ram',          label: 'RAM',                 type: 'text', placeholder: 'e.g. 16GB' },
+  { key: 'cpu',          label: 'CPU',                 type: 'text', placeholder: 'e.g. Apple M2 Pro / Intel i7' },
+  { section: 'Peripherals' },
+  { key: 'mouse',        label: 'Mouse',               type: 'text', placeholder: 'Model or brand' },
+  { key: 'keyboard',     label: 'Keyboard',            type: 'text', placeholder: 'Model or brand' },
+  { key: 'headset',      label: 'Headset',             type: 'text', placeholder: 'Model or brand' },
+  { section: 'Ownership' },
+  { key: 'prevOwner',    label: 'Previous Owner',      type: 'text', placeholder: 'Name or — if none' },
+  { key: 'remarks',      label: 'Remarks',             type: 'textarea', full: true, placeholder: 'Any notes, condition issues, etc.' },
+];
+
+const TOGGLES = [
+  { key: 'ntonEmail',   label: 'NtoN Email' },
+  { key: 'mfa3cx',      label: '3CX MFA' },
+  { key: 'mfaMonday',   label: 'Mondayboard MFA' },
+  { key: 'mfaDesktime', label: 'Desktime MFA' },
+  { key: 'nord',        label: 'Nord' },
+  { key: 'krisp',       label: 'Krisp' },
+];
+
+// All field keys (for mapping UI)
+const ALL_FIELD_KEYS = [
+  ...FIELDS.filter(f => f.key).map(f => ({ key: f.key, label: f.label })),
+  ...TOGGLES.map(t => ({ key: t.key, label: t.label })),
+];
+
+// Canonical column names for auto-matching (lowercase)
+const COLUMN_ALIASES = {
+  name: ['name', 'employee name', 'full name', 'employee'],
+  deviceName: ['device name', 'device', 'computer name', 'laptop name', 'hostname'],
+  serial: ['serial number', 'serial', 'serial no', 'sn', 's/n'],
+  manufacturer: ['device manufacturer', 'manufacturer', 'brand', 'make'],
+  model: ['device model', 'model', 'model name'],
+  ram: ['ram', 'memory', 'ram (gb)', 'memory (gb)'],
+  cpu: ['cpu', 'processor', 'cpu/processor'],
+  mouse: ['mouse'],
+  keyboard: ['keyboard'],
+  headset: ['headset'],
+  prevOwner: ['previous owner', 'prev owner', 'previous user', 'former owner'],
+  remarks: ['remarks', 'notes', 'comments'],
+  ntonEmail: ['nton email', 'n2n email', 'ntonemail', 'email access'],
+  mfa3cx: ['3cx mfa', '3cx', '3cx mfa enabled'],
+  mfaMonday: ['mondayboard mfa', 'monday mfa', 'monday.com mfa', 'mondaymfa'],
+  mfaDesktime: ['desktime mfa', 'desktime'],
+  nord: ['nord', 'nord vpn', 'nordvpn'],
+  krisp: ['krisp'],
+};
+
+function autoMatch(colName) {
+  const lc = colName.toLowerCase().trim();
+  for (const [key, aliases] of Object.entries(COLUMN_ALIASES)) {
+    if (aliases.includes(lc)) return key;
+  }
+  return '';
+}
+
+/* ===== RECORDS ===== */
+let records = [];
+try { records = JSON.parse(localStorage.getItem('devtrack_v1') || '[]'); } catch(e) { records = []; }
+let editId = null;
+
+function persist() { localStorage.setItem('devtrack_v1', JSON.stringify(records)); }
+
+/* ===== UTILS ===== */
+function pill(val) {
+  return val ? '<span class="pill yes">Yes</span>' : '<span class="pill no">No</span>';
+}
+function esc(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function parseBool(v) {
+  if (typeof v === 'boolean') return v;
+  if (typeof v === 'number') return v !== 0;
+  const s = String(v).toLowerCase().trim();
+  return ['yes','true','1','y','on','enabled'].includes(s);
+}
+function showToast(msg, icon) {
+  const toast = document.getElementById('toast');
+  toast.querySelector('i').className = 'ti ti-' + (icon || 'check');
+  document.getElementById('toastMsg').textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 3000);
+}
+
+/* ===== TABLE RENDER ===== */
+function renderTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = records.filter(r =>
+    (r.name||'').toLowerCase().includes(q) ||
+    (r.deviceName||'').toLowerCase().includes(q) ||
+    (r.serial||'').toLowerCase().includes(q) ||
+    (r.manufacturer||'').toLowerCase().includes(q) ||
+    (r.model||'').toLowerCase().includes(q)
+  );
+  const total = records.length;
+  document.getElementById('countBadge').textContent = filtered.length + ' record' + (filtered.length !== 1 ? 's' : '');
+  document.getElementById('headerCount').textContent = total + ' employee' + (total !== 1 ? 's' : '');
+  const tbody = document.getElementById('tableBody');
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="13"><div class="empty">
+      <i class="ti ti-device-laptop-off" aria-hidden="true"></i>
+      <p>${records.length ? 'No records match your search.' : 'No employees yet. Click <strong>Add Employee</strong> or <strong>Import Excel</strong> to get started.'}</p>
+    </div></td></tr>`;
+    return;
+  }
+  tbody.innerHTML = filtered.map(r => `
+    <tr>
+      <td><strong>${esc(r.name) || '<span style="color:var(--text-muted)">—</span>'}</strong></td>
+      <td>${esc(r.deviceName) || '<span class="muted">—</span>'}</td>
+      <td class="muted">${esc(r.serial) || '—'}</td>
+      <td>${esc(r.manufacturer)||''}${r.manufacturer&&r.model?' · ':''}${esc(r.model)||''}</td>
+      <td>${esc(r.ram) || '<span class="muted">—</span>'}</td>
+      <td>${esc(r.cpu) || '<span class="muted">—</span>'}</td>
+      <td>${pill(r.ntonEmail)}</td>
+      <td>${pill(r.mfa3cx)}</td>
+      <td>${pill(r.mfaMonday)}</td>
+      <td>${pill(r.mfaDesktime)}</td>
+      <td>${pill(r.nord)}</td>
+      <td>${pill(r.krisp)}</td>
+      <td>
+        <div class="actions">
+          <button class="icon-btn" title="Edit" onclick="openModal('${r.id}')"><i class="ti ti-edit" aria-hidden="true"></i></button>
+          <button class="icon-btn del" title="Delete" onclick="deleteRecord('${r.id}')"><i class="ti ti-trash" aria-hidden="true"></i></button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+/* ===== EDIT MODAL ===== */
+function buildForm(data) {
+  const g = document.getElementById('formGrid');
+  let html = '';
+  FIELDS.forEach(f => {
+    if (f.section) { html += `<div class="section-divider" style="grid-column:1/-1">${f.section}</div>`; return; }
+    const val = esc(data[f.key] || '');
+    const full = f.full ? ' full' : '';
+    if (f.type === 'textarea') {
+      html += `<div class="form-group${full}"><label for="f_${f.key}">${f.label}</label><textarea id="f_${f.key}" placeholder="${f.placeholder||''}">${val}</textarea></div>`;
+    } else {
+      html += `<div class="form-group${full}"><label for="f_${f.key}">${f.label}</label><input type="text" id="f_${f.key}" value="${val}" placeholder="${f.placeholder||''}"></div>`;
+    }
+  });
+  html += `<div class="section-divider" style="grid-column:1/-1">Software & Access</div><div class="toggle-grid">`;
+  TOGGLES.forEach(t => {
+    html += `<div class="toggle-item"><span>${t.label}</span><label class="toggle-switch" aria-label="${t.label}"><input type="checkbox" id="f_${t.key}" ${data[t.key]?'checked':''}><span class="slider"></span></label></div>`;
+  });
+  html += `</div>`;
+  g.innerHTML = html;
+}
+
+function openModal(id) {
+  editId = id || null;
+  const data = id ? (records.find(r => r.id === id) || {}) : {};
+  document.getElementById('modalTitle').textContent = id ? 'Edit Employee' : 'Add Employee';
+  buildForm(data);
+  const ov = document.getElementById('overlay');
+  ov.style.display = 'flex';
+  requestAnimationFrame(() => ov.classList.add('open'));
+  setTimeout(() => { const el = document.getElementById('f_name'); if(el) el.focus(); }, 150);
+}
+
+function closeModal() {
+  const ov = document.getElementById('overlay');
+  ov.classList.remove('open');
+  setTimeout(() => { ov.style.display = 'none'; editId = null; }, 200);
+}
+
+function handleOverlayClick(e) { if (e.target === document.getElementById('overlay')) closeModal(); }
+
+function getFormData() {
+  const d = {};
+  FIELDS.forEach(f => { if(f.section) return; const el = document.getElementById('f_'+f.key); d[f.key] = el ? el.value.trim() : ''; });
+  TOGGLES.forEach(t => { const el = document.getElementById('f_'+t.key); d[t.key] = el ? el.checked : false; });
+  return d;
+}
+
+function saveRecord() {
+  const d = getFormData();
+  if (!d.name) { alert('Name is required.'); document.getElementById('f_name').focus(); return; }
+  if (editId) {
+    const i = records.findIndex(r => r.id === editId);
+    if (i > -1) records[i] = { ...records[i], ...d };
+    showToast('Record updated');
+  } else {
+    d.id = 'emp_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+    d.createdAt = new Date().toISOString();
+    records.unshift(d);
+    showToast('Employee added');
+  }
+  persist(); renderTable(); closeModal();
+}
+
+function deleteRecord(id) {
+  const r = records.find(x => x.id === id);
+  if (!confirm(`Delete record for "${r ? r.name || 'this employee' : 'this employee'}"? This cannot be undone.`)) return;
+  records = records.filter(x => x.id !== id);
+  persist(); renderTable(); showToast('Record deleted', 'trash');
+}
+
+/* ===== IMPORT MODAL ===== */
+let importStep = 1;
+let importRows = [];       // raw rows from file (array of objects)
+let importHeaders = [];    // column headers from file
+let importMapping = {};    // { fieldKey: colHeader }
+
+function openImportModal() {
+  importStep = 1; importRows = []; importHeaders = []; importMapping = {};
+  document.getElementById('importStep1').style.display = '';
+  document.getElementById('importStep2').style.display = 'none';
+  document.getElementById('importStep3').style.display = 'none';
+  document.getElementById('importNextBtn').textContent = 'Next ';
+  document.getElementById('importNextBtn').innerHTML = 'Next <i class="ti ti-arrow-right"></i>';
+  document.getElementById('importNextBtn').disabled = true;
+  document.getElementById('importBackBtn').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+  setStepUI(1);
+  const ov = document.getElementById('importOverlay');
+  ov.style.display = 'flex';
+  requestAnimationFrame(() => ov.classList.add('open'));
+}
+
+function closeImportModal() {
+  const ov = document.getElementById('importOverlay');
+  ov.classList.remove('open');
+  setTimeout(() => { ov.style.display = 'none'; }, 200);
+}
+
+function handleImportOverlayClick(e) { if(e.target === document.getElementById('importOverlay')) closeImportModal(); }
+
+function setStepUI(step) {
+  [1,2,3].forEach(n => {
+    const el = document.getElementById('step'+n+'el');
+    el.className = 'step' + (n === step ? ' active' : n < step ? ' done' : '');
+    if (n < step) el.querySelector('.step-num').innerHTML = '<i class="ti ti-check" style="font-size:11px"></i>';
+    else el.querySelector('.step-num').textContent = n;
+  });
+}
+
+function handleDragOver(e) { e.preventDefault(); document.getElementById('dropZone').classList.add('drag-over'); }
+function handleDragLeave()  { document.getElementById('dropZone').classList.remove('drag-over'); }
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file) processFile(file);
+}
+function handleFileSelect(e) { const file = e.target.files[0]; if(file) processFile(file); }
+
+function processFile(file) {
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const wb = XLSX.read(data, { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(ws, { defval: '' });
+      if (!json.length) { alert('The file appears to be empty or has no data rows.'); return; }
+      importRows = json;
+      importHeaders = Object.keys(json[0]);
+      // Auto-map
+      importMapping = {};
+      importHeaders.forEach(h => {
+        const match = autoMatch(h);
+        if (match) importMapping[h] = match;
+      });
+      document.getElementById('importNextBtn').disabled = false;
+      const dz = document.getElementById('dropZone');
+      dz.innerHTML = `<i class="ti ti-circle-check" style="color:var(--success-text)" aria-hidden="true"></i>
+        <p style="font-weight:500">${esc(file.name)}</p>
+        <small>${importRows.length} data row${importRows.length!==1?'s':''} · ${importHeaders.length} column${importHeaders.length!==1?'s':''} found</small>`;
+    } catch(err) {
+      alert('Could not read the file. Make sure it is a valid .xlsx, .xls, or .csv file.\n\n' + err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function buildMappingUI() {
+  const g = document.getElementById('mappingGrid');
+  // Header row
+  let html = `<div class="col-label" style="color:var(--text-secondary);font-size:11px;text-transform:uppercase;letter-spacing:.04em">Excel Column</div>
+    <div></div>
+    <div class="col-label" style="color:var(--text-secondary);font-size:11px;text-transform:uppercase;letter-spacing:.04em">Maps to Field</div>`;
+
+  importHeaders.forEach((h, i) => {
+    const currentVal = importMapping[h] || '';
+    const opts = ALL_FIELD_KEYS.map(f =>
+      `<option value="${f.key}" ${currentVal===f.key?'selected':''}>${f.label}</option>`
+    ).join('');
+    html += `
+      <div class="col-label" title="${esc(h)}" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(h)}</div>
+      <div class="arrow">→</div>
+      <select onchange="importMapping['${h.replace(/'/g,"\\'")}'] = this.value; if(!this.value) delete importMapping['${h.replace(/'/g,"\\'")}']">
+        <option value="">— Skip —</option>
+        ${opts}
+      </select>`;
+  });
+  g.innerHTML = html;
+}
+
+function buildPreview() {
+  const mappedFields = Object.entries(importMapping); // [colHeader, fieldKey]
+  const fieldLabelMap = {};
+  ALL_FIELD_KEYS.forEach(f => fieldLabelMap[f.key] = f.label);
+
+  const preview = importRows.slice(0, 5).map(row => {
+    const rec = {};
+    mappedFields.forEach(([col, key]) => { rec[key] = row[col]; });
+    return rec;
+  });
+
+  const mappedKeys = [...new Set(mappedFields.map(([,k])=>k))];
+  const total = importRows.length;
+  const skipped = importRows.filter(r => !r[Object.keys(importMapping).find(h => importMapping[h]==='name')] ).length;
+  const valid = total - skipped;
+
+  document.getElementById('importSummary').innerHTML = `
+    <span class="summary-chip green"><i class="ti ti-users" style="font-size:12px;vertical-align:-1px"></i> ${total} row${total!==1?'s':''} found</span>
+    <span class="summary-chip green"><i class="ti ti-check" style="font-size:12px;vertical-align:-1px"></i> ${mappedKeys.length} field${mappedKeys.length!==1?'s':''} mapped</span>
+    ${skipped>0?`<span class="summary-chip yellow"><i class="ti ti-alert-triangle" style="font-size:12px;vertical-align:-1px"></i> ${skipped} row${skipped!==1?'s':''} missing name</span>`:''}
+    <span style="font-size:12px;color:var(--text-muted);align-self:center">Showing first 5 rows preview</span>
+  `;
+
+  if (!mappedKeys.length) {
+    document.getElementById('previewWrap').innerHTML = '<p style="padding:1rem;font-size:13px;color:var(--text-muted)">No fields mapped. Go back and map at least one column.</p>';
+    return;
+  }
+
+  let thtml = `<table><thead><tr>${mappedKeys.map(k=>`<th>${esc(fieldLabelMap[k]||k)}</th>`).join('')}</tr></thead><tbody>`;
+  preview.forEach(rec => {
+    thtml += '<tr>' + mappedKeys.map(k => {
+      const v = rec[k];
+      const isBool = TOGGLES.find(t=>t.key===k);
+      if(isBool) return `<td>${parseBool(v)?'<span class="pill yes">Yes</span>':'<span class="pill no">No</span>'}</td>`;
+      return `<td>${esc(String(v||''))}</td>`;
+    }).join('') + '</tr>';
+  });
+  thtml += '</tbody></table>';
+  document.getElementById('previewWrap').innerHTML = thtml;
+
+  // Update next button
+  document.getElementById('importNextBtn').innerHTML = `<i class="ti ti-file-import"></i> Import ${total} record${total!==1?'s':''}`;
+}
+
+function importNext() {
+  if (importStep === 1) {
+    if (!importRows.length) return;
+    importStep = 2;
+    document.getElementById('importStep1').style.display = 'none';
+    document.getElementById('importStep2').style.display = '';
+    document.getElementById('importBackBtn').style.display = '';
+    setStepUI(2);
+    buildMappingUI();
+    document.getElementById('importNextBtn').innerHTML = 'Preview <i class="ti ti-arrow-right"></i>';
+  } else if (importStep === 2) {
+    importStep = 3;
+    document.getElementById('importStep2').style.display = 'none';
+    document.getElementById('importStep3').style.display = '';
+    setStepUI(3);
+    buildPreview();
+  } else if (importStep === 3) {
+    doImport();
+  }
+}
+
+function importBack() {
+  if (importStep === 2) {
+    importStep = 1;
+    document.getElementById('importStep2').style.display = 'none';
+    document.getElementById('importStep1').style.display = '';
+    document.getElementById('importBackBtn').style.display = 'none';
+    document.getElementById('importNextBtn').innerHTML = 'Next <i class="ti ti-arrow-right"></i>';
+    setStepUI(1);
+  } else if (importStep === 3) {
+    importStep = 2;
+    document.getElementById('importStep3').style.display = 'none';
+    document.getElementById('importStep2').style.display = '';
+    document.getElementById('importNextBtn').innerHTML = 'Preview <i class="ti ti-arrow-right"></i>';
+    setStepUI(2);
+  }
+}
+
+function doImport() {
+  const mappedFields = Object.entries(importMapping);
+  let added = 0, skipped = 0;
+
+  importRows.forEach(row => {
+    const rec = {};
+    mappedFields.forEach(([col, key]) => {
+      const isBool = TOGGLES.find(t=>t.key===key);
+      rec[key] = isBool ? parseBool(row[col]) : String(row[col]||'').trim();
+    });
+
+    // Skip rows without a name
+    if (!rec.name) { skipped++; return; }
+
+    rec.id = 'emp_' + Date.now() + '_' + Math.random().toString(36).slice(2,6) + '_' + added;
+    rec.createdAt = new Date().toISOString();
+    records.push(rec);
+    added++;
+  });
+
+  persist();
+  renderTable();
+  closeImportModal();
+  showToast(`${added} record${added!==1?'s':''} imported${skipped?' ('+skipped+' skipped)':''}`, 'file-import');
+}
+
+/* ===== TEMPLATE DOWNLOAD ===== */
+function downloadTemplate() {
+  const headers = [
+    'Name','Device Name','Serial Number','Device Manufacturer','Device Model',
+    'RAM','CPU','Mouse','Keyboard','Headset','Previous Owner','Remarks',
+    'NtoN Email','3CX MFA','Mondayboard MFA','Desktime MFA','Nord','Krisp'
+  ];
+  const example = [
+    'Juan dela Cruz','MacBook Pro 14','C02XG0001','Apple','MBP M3 Pro',
+    '18GB','Apple M3 Pro','Logitech MX Master 3','Apple Magic Keyboard','Sony WH-1000XM5','Maria Santos','Good condition',
+    'Yes','No','Yes','Yes','Yes','No'
+  ];
+  const ws = XLSX.utils.aoa_to_sheet([headers, example]);
+  // Column widths
+  ws['!cols'] = headers.map(() => ({ wch: 20 }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Employee Inventory');
+  XLSX.writeFile(wb, 'employee-inventory-template.xlsx');
+  showToast('Template downloaded', 'download');
+}
+
+/* ===== KEYBOARD ===== */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { closeModal(); closeImportModal(); }
+});
+
+renderTable();
+</script>
+</body>
+</html>
