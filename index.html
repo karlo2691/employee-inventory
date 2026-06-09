@@ -299,7 +299,7 @@
             <th class="md-col">Maker / Model</th>
             <th class="sm-col">RAM</th>
             <th class="md-col">CPU</th>
-            <th class="pill-col">Email</th>
+            <th class="lg-col">NtoN Email</th>
             <th class="pill-col">3CX</th>
             <th class="pill-col">Monday</th>
             <th class="pill-col">Desktime</th>
@@ -468,12 +468,13 @@ const FIELDS = [
   { key:'mouse',        label:'Mouse',               type:'text', placeholder:'Model or brand' },
   { key:'keyboard',     label:'Keyboard',            type:'text', placeholder:'Model or brand' },
   { key:'headset',      label:'Headset',             type:'text', placeholder:'Model or brand' },
+  { section: 'Access' },
+  { key:'ntonEmail',    label:'NtoN Email',          type:'email', placeholder:'e.g. juan@nton.com', full:true },
   { section: 'Ownership' },
   { key:'prevOwner',    label:'Previous Owner',      type:'text', placeholder:'Name or — if none' },
   { key:'remarks',      label:'Remarks',             type:'textarea', full:true, placeholder:'Any notes, condition issues, etc.' },
 ];
 const TOGGLES = [
-  { key:'ntonEmail',   label:'NtoN Email' },
   { key:'mfa3cx',      label:'3CX MFA' },
   { key:'mfaMonday',   label:'Mondayboard MFA' },
   { key:'mfaDesktime', label:'Desktime MFA' },
@@ -553,7 +554,8 @@ function setFilter(f) {
 
 function applyFilter(r) {
   if (activeFilter === 'all') return true;
-  if (activeFilter === 'noEmail') return !r.ntonEmail;
+  if (activeFilter === 'ntonEmail') return !!(r.ntonEmail && r.ntonEmail !== 'false' && r.ntonEmail !== 'No' && r.ntonEmail !== '0');
+  if (activeFilter === 'noEmail') return !(r.ntonEmail && r.ntonEmail !== 'false' && r.ntonEmail !== 'No' && r.ntonEmail !== '0');
   if (activeFilter === 'noMfa') return !r.mfa3cx && !r.mfaMonday && !r.mfaDesktime;
   return !!r[activeFilter];
 }
@@ -619,7 +621,8 @@ function getFilteredRecords() {
       (r.deviceName||'').toLowerCase().includes(searchQuery) ||
       (r.serial||'').toLowerCase().includes(searchQuery) ||
       (r.manufacturer||'').toLowerCase().includes(searchQuery) ||
-      (r.model||'').toLowerCase().includes(searchQuery);
+      (r.model||'').toLowerCase().includes(searchQuery) ||
+      (r.ntonEmail||'').toLowerCase().includes(searchQuery);
     return matchSearch && applyFilter(r);
   });
 }
@@ -649,7 +652,12 @@ function renderTable() {
       <td title="${esc(r.manufacturer)||''}${r.manufacturer&&r.model?' · ':''}${esc(r.model)||''}">${esc(r.manufacturer)||''}${r.manufacturer&&r.model?' · ':''}${esc(r.model)||''}</td>
       <td>${esc(r.ram)||'<span class="muted">—</span>'}</td>
       <td title="${esc(r.cpu)||''}">${esc(r.cpu)||'<span class="muted">—</span>'}</td>
-      <td class="pill-col">${pill(r.ntonEmail)}</td>
+      <td title="${esc(r.ntonEmail)||''}">${r.ntonEmail && r.ntonEmail !== 'true' && r.ntonEmail !== 'false' && r.ntonEmail !== 'Yes' && r.ntonEmail !== 'No'
+        ? `<a href="mailto:${esc(r.ntonEmail)}" style="color:var(--info-text);text-decoration:none;" onclick="event.stopPropagation()">${esc(r.ntonEmail)}</a>`
+        : (r.ntonEmail === true || r.ntonEmail === 'true' || r.ntonEmail === 'Yes' || r.ntonEmail === '1'
+          ? '<span class="pill yes">Yes</span>'
+          : '<span class="muted">—</span>')
+      }</td>
       <td class="pill-col">${pill(r.mfa3cx)}</td>
       <td class="pill-col">${pill(r.mfaMonday)}</td>
       <td class="pill-col">${pill(r.mfaDesktime)}</td>
@@ -720,10 +728,10 @@ function buildForm(data) {
     if(f.type==='textarea') {
       html+=`<div class="form-group${full}"><label for="f_${f.key}">${f.label}</label><textarea id="f_${f.key}" placeholder="${f.placeholder||''}">${val}</textarea></div>`;
     } else {
-      html+=`<div class="form-group${full}"><label for="f_${f.key}">${f.label}</label><input type="text" id="f_${f.key}" value="${val}" placeholder="${f.placeholder||''}"></div>`;
+      html+=`<div class="form-group${full}"><label for="f_${f.key}">${f.label}</label><input type="${f.type||'text'}" id="f_${f.key}" value="${val}" placeholder="${f.placeholder||''}"></div>`;
     }
   });
-  html+=`<div class="section-divider" style="grid-column:1/-1">Software & Access</div><div class="toggle-grid">`;
+  html+=`<div class="section-divider" style="grid-column:1/-1">MFA & Apps</div><div class="toggle-grid">`;
   TOGGLES.forEach(t=>{ html+=`<div class="toggle-item"><span>${t.label}</span><label class="toggle-switch"><input type="checkbox" id="f_${t.key}" ${data[t.key]?'checked':''}><span class="slider"></span></label></div>`; });
   html+=`</div>`;
   document.getElementById('formGrid').innerHTML = html;
@@ -1035,6 +1043,7 @@ function doExport() {
 
   // Add summary sheet
   const now = new Date();
+  const hasEmail = r => r.ntonEmail && r.ntonEmail !== 'false' && r.ntonEmail !== 'No' && r.ntonEmail !== '0' && r.ntonEmail !== 'undefined';
   const summaryData = [
     ['DeviceTrack — Employee Inventory Report'],
     ['Generated', now.toLocaleString()],
@@ -1042,9 +1051,9 @@ function doExport() {
     ['Columns exported', selectedCols.length],
     [],
     ['— Software Access Summary —'],
-    ['NtoN Email enabled', recs.filter(r=>r.ntonEmail).length],
-    ['3CX MFA enabled',    recs.filter(r=>r.mfa3cx).length],
-    ['Monday MFA enabled', recs.filter(r=>r.mfaMonday).length],
+    ['NtoN Email set',      recs.filter(hasEmail).length],
+    ['3CX MFA enabled',     recs.filter(r=>r.mfa3cx).length],
+    ['Monday MFA enabled',  recs.filter(r=>r.mfaMonday).length],
     ['Desktime MFA enabled',recs.filter(r=>r.mfaDesktime).length],
     ['Nord enabled',        recs.filter(r=>r.nord).length],
     ['Krisp enabled',       recs.filter(r=>r.krisp).length],
