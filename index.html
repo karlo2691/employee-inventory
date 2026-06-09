@@ -224,6 +224,7 @@
   .filename-ext { padding: 8px 10px; background: var(--bg-secondary); border: 0.5px solid var(--border); border-left: none; border-radius: 0 var(--radius) var(--radius) 0; font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
   .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--accent-text); padding: 10px 18px; border-radius: var(--radius); font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: var(--shadow-lg); z-index: 999; opacity: 0; transition: opacity .25s; pointer-events: none; white-space: nowrap; }
   .toast.show { opacity: 1; }
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
   @media (max-width: 640px) {
     .header { padding: 0 1rem; }
@@ -805,24 +806,116 @@ function setStepUI(step) {
 }
 function handleDragOver(e){ e.preventDefault(); document.getElementById('dropZone').classList.add('drag-over'); }
 function handleDragLeave(){ document.getElementById('dropZone').classList.remove('drag-over'); }
-function handleDrop(e){ e.preventDefault(); document.getElementById('dropZone').classList.remove('drag-over'); const f=e.dataTransfer.files[0]; if(f) processFile(f); }
-function handleFileSelect(e){ const f=e.target.files[0]; if(f) processFile(f); }
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if(f) processFile(f);
+}
+function handleFileSelect(e){
+  const f = e.target.files[0];
+  if(f) processFile(f);
+  // Reset input so same file can be re-selected
+  e.target.value = '';
+}
+
 function processFile(file) {
-  const reader=new FileReader();
-  reader.onload=function(e){
+  // Validate extension
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!['xlsx','xls','csv'].includes(ext)) {
+    showImportError('Unsupported file type. Please use .xlsx, .xls, or .csv');
+    return;
+  }
+
+  // Show loading state
+  const dz = document.getElementById('dropZone');
+  dz.innerHTML = `<i class="ti ti-loader" style="animation:spin 1s linear infinite" aria-hidden="true"></i><p>Reading file…</p><small>${file.name}</small>`;
+
+  // Try ArrayBuffer first (best), fall back to BinaryString (Edge-compatible)
+  function parseWorkbook(data, readType) {
     try {
-      const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
-      const ws=wb.Sheets[wb.SheetNames[0]];
-      const json=XLSX.utils.sheet_to_json(ws,{defval:''});
-      if(!json.length){ alert('The file appears to be empty.'); return; }
-      importRows=json; importHeaders=Object.keys(json[0]);
-      importMapping={};
-      importHeaders.forEach(h=>{ const m=autoMatch(h); if(m) importMapping[h]=m; });
-      document.getElementById('importNextBtn').disabled=false;
-      document.getElementById('dropZone').innerHTML=`<i class="ti ti-circle-check" style="color:var(--success-text)" aria-hidden="true"></i><p style="font-weight:500">${esc(file.name)}</p><small>${importRows.length} data row${importRows.length!==1?'s':''} · ${importHeaders.length} column${importHeaders.length!==1?'s':''} found</small>`;
-    } catch(err){ alert('Could not read the file.\n\n'+err.message); }
-  };
-  reader.readAsArrayBuffer(file);
+      const wb = XLSX.read(data, { type: readType, cellDates: true });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const json = XLSX.utils.sheet_to_json(ws, { defval: '', raw: false });
+      if (!json.length) { showImportError('The file appears to be empty or has no data rows.'); return; }
+      importRows = json;
+      importHeaders = Object.keys(json[0]);
+      importMapping = {};
+      importHeaders.forEach(h => { const m = autoMatch(h); if(m) importMapping[h] = m; });
+      document.getElementById('importNextBtn').disabled = false;
+      dz.innerHTML = `<i class="ti ti-circle-check" style="color:var(--success-text)" aria-hidden="true"></i>
+        <p style="font-weight:500">${esc(file.name)}</p>
+        <small>${importRows.length} data row${importRows.length!==1?'s':''} · ${importHeaders.length} column${importHeaders.length!==1?'s':''} found</small>`;
+    } catch(err) {
+      showImportError('Could not parse the file: ' + err.message);
+    }
+  }
+
+  function showImportError(msg) {
+    dz.innerHTML = `<i class="ti ti-alert-circle" style="color:var(--danger-text)" aria-hidden="true"></i>
+      <p style="color:var(--danger-text);font-weight:500">Import failed</p>
+      <small style="color:var(--danger-text)">${esc(msg)}</small>
+      <small style="margin-top:8px">Click to try again</small>`;
+    document.getElementById('importNextBtn').disabled = true;
+  }
+
+  // Strategy 1: ArrayBuffer (modern browsers)
+  const tryArrayBuffer = () => new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = e => resolve({ data: e.target.result, type: 'array' });
+    r.onerror = reject;
+    r.readAsArrayBuffer(file);
+  });
+
+  // Strategy 2: BinaryString (Edge fallback)
+  const tryBinaryString = () => new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = e => resolve({ data: e.target.result, type: 'binary' });
+    r.onerror = reject;
+    r.readAsBinaryString(file);
+  });
+
+  // Strategy 3: DataURL (last resort)
+  const tryDataURL = () => new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = e => {
+      const base64 = e.target.result.split(',')[1];
+      resolve({ data: base64, type: 'base64' });
+    };
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+
+  // CSV gets read as text directly — most reliable across all browsers
+  if (ext === 'csv') {
+    const r = new FileReader();
+    r.onload = e => {
+      try {
+        const wb = XLSX.read(e.target.result, { type: 'string' });
+        const ws = wb.Sheets[wb.SheetNames[0]];
+        const json = XLSX.utils.sheet_to_json(ws, { defval: '', raw: false });
+        if (!json.length) { showImportError('The CSV appears to be empty.'); return; }
+        importRows = json;
+        importHeaders = Object.keys(json[0]);
+        importMapping = {};
+        importHeaders.forEach(h => { const m = autoMatch(h); if(m) importMapping[h] = m; });
+        document.getElementById('importNextBtn').disabled = false;
+        dz.innerHTML = `<i class="ti ti-circle-check" style="color:var(--success-text)" aria-hidden="true"></i>
+          <p style="font-weight:500">${esc(file.name)}</p>
+          <small>${importRows.length} data row${importRows.length!==1?'s':''} · ${importHeaders.length} column${importHeaders.length!==1?'s':''} found</small>`;
+      } catch(err) { showImportError(err.message); }
+    };
+    r.onerror = () => showImportError('Could not read the CSV file.');
+    r.readAsText(file);
+    return;
+  }
+
+  // For xlsx/xls: try strategies in order
+  tryArrayBuffer()
+    .catch(() => tryBinaryString())
+    .catch(() => tryDataURL())
+    .then(({ data, type }) => parseWorkbook(data, type))
+    .catch(err => showImportError('All read methods failed: ' + (err && err.message || err)));
 }
 function buildMappingUI() {
   let html=`<div class="col-label" style="color:var(--text-secondary);font-size:11px;text-transform:uppercase;letter-spacing:.04em">Excel Column</div><div></div><div class="col-label" style="color:var(--text-secondary);font-size:11px;text-transform:uppercase;letter-spacing:.04em">Maps to Field</div>`;
