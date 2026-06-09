@@ -495,16 +495,23 @@ const COLUMN_ALIASES = {
   mouse:['mouse'], keyboard:['keyboard'], headset:['headset'],
   prevOwner:['previous owner','prev owner','previous user','former owner'],
   remarks:['remarks','notes','comments'],
-  ntonEmail:['nton email','n2n email','ntonemail','email access'],
-  mfa3cx:['3cx mfa','3cx','3cx mfa enabled'],
-  mfaMonday:['mondayboard mfa','monday mfa','monday.com mfa','mondaymfa'],
-  mfaDesktime:['desktime mfa','desktime'],
-  nord:['nord','nord vpn','nordvpn'],
-  krisp:['krisp'],
+  ntonEmail:['nton email','n2n email','ntonemail','email access','nton','nton email address','ntonemail address','nton e-mail','n-to-n email'],
+  mfa3cx:['3cx mfa','3cx','3cx mfa enabled','3cx multi-factor','3cx auth'],
+  mfaMonday:['mondayboard mfa','monday mfa','monday.com mfa','mondaymfa','monday board mfa','monday'],
+  mfaDesktime:['desktime mfa','desktime','desk time mfa','desk time'],
+  nord:['nord','nord vpn','nordvpn','nord vpn access'],
+  krisp:['krisp','krisp ai','krisp noise'],
 };
 function autoMatch(col) {
-  const lc = col.toLowerCase().trim();
-  for (const [key,aliases] of Object.entries(COLUMN_ALIASES)) { if(aliases.includes(lc)) return key; }
+  const lc = col.toLowerCase().trim().replace(/\s+/g,' ');
+  // Exact alias match
+  for (const [key,aliases] of Object.entries(COLUMN_ALIASES)) {
+    if (aliases.includes(lc)) return key;
+  }
+  // Fuzzy: check if the column contains a key alias as a substring
+  for (const [key,aliases] of Object.entries(COLUMN_ALIASES)) {
+    if (aliases.some(a => lc.includes(a) || a.includes(lc))) return key;
+  }
   return '';
 }
 
