@@ -202,7 +202,26 @@
   .step.active .step-num { background: var(--accent); color: var(--accent-text); }
   .step.done .step-num { background: var(--success-bg); color: var(--success-text); }
 
-  /* Toast */
+  /* Export modal */
+  .export-modal { width: 500px; }
+  .export-section { margin-bottom: 1.25rem; }
+  .export-section-label { font-size: 11px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 8px; }
+  .export-option { display: flex; align-items: flex-start; gap: 10px; padding: 11px 13px; border: 0.5px solid var(--border); border-radius: var(--radius); cursor: pointer; transition: background .12s, border-color .12s; margin-bottom: 6px; }
+  .export-option:hover { background: var(--bg-secondary); border-color: var(--border-hover); }
+  .export-option input[type=radio] { margin-top: 2px; accent-color: var(--accent); flex-shrink: 0; }
+  .export-option-body { flex: 1; }
+  .export-option-title { font-size: 13px; font-weight: 500; }
+  .export-option-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .export-fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px; }
+  .export-field-chk { display: flex; align-items: center; gap: 7px; font-size: 12px; padding: 5px 8px; border-radius: var(--radius); border: 0.5px solid var(--border); cursor: pointer; transition: background .1s; }
+  .export-field-chk:hover { background: var(--bg-secondary); }
+  .export-field-chk input { accent-color: var(--accent); cursor: pointer; }
+  .export-chk-all { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; cursor: pointer; }
+  .export-chk-all input { accent-color: var(--accent); cursor: pointer; }
+  .filename-wrap { display: flex; align-items: center; gap: 0; }
+  .filename-wrap input { flex: 1; padding: 8px 10px; border: 0.5px solid var(--border); border-radius: var(--radius) 0 0 var(--radius); background: var(--bg); color: var(--text); font-size: 13px; font-family: inherit; }
+  .filename-wrap input:focus { outline: none; border-color: var(--border-hover); }
+  .filename-ext { padding: 8px 10px; background: var(--bg-secondary); border: 0.5px solid var(--border); border-left: none; border-radius: 0 var(--radius) var(--radius) 0; font-size: 13px; color: var(--text-secondary); white-space: nowrap; }
   .toast { position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%); background: var(--accent); color: var(--accent-text); padding: 10px 18px; border-radius: var(--radius); font-size: 13px; display: flex; align-items: center; gap: 8px; box-shadow: var(--shadow-lg); z-index: 999; opacity: 0; transition: opacity .25s; pointer-events: none; white-space: nowrap; }
   .toast.show { opacity: 1; }
 
@@ -228,6 +247,7 @@
     <span class="badge" id="headerCount">0 employees</span>
     <button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle dark mode" aria-label="Toggle dark mode"><i class="ti ti-moon" id="themeIcon"></i></button>
     <button class="btn success" onclick="openImportModal()"><i class="ti ti-file-import"></i> <span>Import Excel</span></button>
+    <button class="btn" onclick="openExportModal()"><i class="ti ti-file-spreadsheet"></i> <span>Export</span></button>
     <button class="btn" onclick="downloadTemplate()"><i class="ti ti-download"></i> <span>Template</span></button>
     <button class="btn primary" onclick="openModal()"><i class="ti ti-plus"></i> <span>Add Employee</span></button>
   </div>
@@ -361,6 +381,69 @@
       <button class="btn" onclick="closeImportModal()">Cancel</button>
       <button class="btn" id="importBackBtn" style="display:none" onclick="importBack()"><i class="ti ti-arrow-left"></i> Back</button>
       <button class="btn primary" id="importNextBtn" onclick="importNext()" disabled>Next <i class="ti ti-arrow-right"></i></button>
+    </div>
+  </div>
+</div>
+
+<!-- Export Modal -->
+<div class="overlay" id="exportOverlay" onclick="handleExportOverlayClick(event)">
+  <div class="modal export-modal" role="dialog" aria-modal="true" aria-labelledby="exportTitle" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2 id="exportTitle"><i class="ti ti-file-spreadsheet" style="margin-right:6px;font-size:16px;vertical-align:-2px;color:var(--success-text)"></i>Export to Excel</h2>
+      <button class="icon-btn" onclick="closeExportModal()" aria-label="Close"><i class="ti ti-x"></i></button>
+    </div>
+
+    <!-- Scope -->
+    <div class="export-section">
+      <div class="export-section-label">Records to export</div>
+      <label class="export-option">
+        <input type="radio" name="exportScope" value="all" checked onchange="updateExportPreview()">
+        <div class="export-option-body">
+          <div class="export-option-title">All records</div>
+          <div class="export-option-desc" id="exportAllDesc">Export every employee in the inventory</div>
+        </div>
+      </label>
+      <label class="export-option" id="exportFilteredOption">
+        <input type="radio" name="exportScope" value="filtered" onchange="updateExportPreview()">
+        <div class="export-option-body">
+          <div class="export-option-title">Current view <span id="exportFilteredBadge" class="badge" style="font-size:11px;padding:1px 7px;margin-left:4px"></span></div>
+          <div class="export-option-desc">Only records matching your current search & filter</div>
+        </div>
+      </label>
+      <label class="export-option" id="exportSelectedOption">
+        <input type="radio" name="exportScope" value="selected" onchange="updateExportPreview()">
+        <div class="export-option-body">
+          <div class="export-option-title">Selected rows <span id="exportSelectedBadge" class="badge" style="font-size:11px;padding:1px 7px;margin-left:4px"></span></div>
+          <div class="export-option-desc">Only the rows you have checked</div>
+        </div>
+      </label>
+    </div>
+
+    <!-- Columns -->
+    <div class="export-section">
+      <div class="export-section-label">Columns to include</div>
+      <label class="export-chk-all">
+        <input type="checkbox" id="exportSelectAllCols" onchange="toggleAllExportCols(this)" checked>
+        Select / deselect all columns
+      </label>
+      <div class="export-fields-grid" id="exportFieldsGrid"></div>
+    </div>
+
+    <!-- Filename -->
+    <div class="export-section">
+      <div class="export-section-label">File name</div>
+      <div class="filename-wrap">
+        <input type="text" id="exportFilename" value="employee-inventory">
+        <span class="filename-ext">.xlsx</span>
+      </div>
+    </div>
+
+    <!-- Preview count -->
+    <div style="font-size:12px;color:var(--text-secondary);margin-bottom:0.5rem" id="exportPreviewText"></div>
+
+    <div class="modal-footer">
+      <button class="btn" onclick="closeExportModal()">Cancel</button>
+      <button class="btn primary" onclick="doExport()"><i class="ti ti-file-spreadsheet"></i> Download Report</button>
     </div>
   </div>
 </div>
@@ -816,6 +899,159 @@ function downloadTemplate() {
   showToast('Template downloaded','download');
 }
 
+/* ===== EXPORT ===== */
+const EXPORT_FIELDS = [
+  { key:'name',         label:'Name' },
+  { key:'deviceName',   label:'Device Name' },
+  { key:'serial',       label:'Serial Number' },
+  { key:'manufacturer', label:'Device Manufacturer' },
+  { key:'model',        label:'Device Model' },
+  { key:'ram',          label:'RAM' },
+  { key:'cpu',          label:'CPU' },
+  { key:'mouse',        label:'Mouse' },
+  { key:'keyboard',     label:'Keyboard' },
+  { key:'headset',      label:'Headset' },
+  { key:'prevOwner',    label:'Previous Owner' },
+  { key:'ntonEmail',    label:'NtoN Email' },
+  { key:'mfa3cx',       label:'3CX MFA' },
+  { key:'mfaMonday',    label:'Mondayboard MFA' },
+  { key:'mfaDesktime',  label:'Desktime MFA' },
+  { key:'nord',         label:'Nord' },
+  { key:'krisp',        label:'Krisp' },
+  { key:'remarks',      label:'Remarks' },
+];
+
+function openExportModal() {
+  // Build column checkboxes
+  const grid = document.getElementById('exportFieldsGrid');
+  grid.innerHTML = EXPORT_FIELDS.map(f => `
+    <label class="export-field-chk">
+      <input type="checkbox" data-key="${f.key}" checked onchange="syncExportSelectAll()">
+      ${f.label}
+    </label>`).join('');
+
+  // Reset scope to all
+  document.querySelector('input[name=exportScope][value=all]').checked = true;
+
+  // Update badges
+  const filtered = getFilteredRecords();
+  document.getElementById('exportFilteredBadge').textContent = filtered.length;
+  document.getElementById('exportSelectedBadge').textContent = selectedIds.size;
+
+  // Disable selected option if nothing selected
+  const selOpt = document.getElementById('exportSelectedOption');
+  selOpt.style.opacity = selectedIds.size ? '1' : '0.45';
+  selOpt.querySelector('input').disabled = selectedIds.size === 0;
+
+  updateExportPreview();
+
+  const ov = document.getElementById('exportOverlay');
+  ov.style.display = 'flex';
+  requestAnimationFrame(() => ov.classList.add('open'));
+}
+
+function closeExportModal() {
+  const ov = document.getElementById('exportOverlay');
+  ov.classList.remove('open');
+  setTimeout(() => ov.style.display = 'none', 200);
+}
+
+function handleExportOverlayClick(e) {
+  if (e.target === document.getElementById('exportOverlay')) closeExportModal();
+}
+
+function toggleAllExportCols(chk) {
+  document.querySelectorAll('#exportFieldsGrid input[type=checkbox]').forEach(c => c.checked = chk.checked);
+  updateExportPreview();
+}
+
+function syncExportSelectAll() {
+  const all = [...document.querySelectorAll('#exportFieldsGrid input[type=checkbox]')];
+  const master = document.getElementById('exportSelectAllCols');
+  master.checked = all.every(c => c.checked);
+  master.indeterminate = all.some(c => c.checked) && !all.every(c => c.checked);
+  updateExportPreview();
+}
+
+function getExportRecords() {
+  const scope = document.querySelector('input[name=exportScope]:checked').value;
+  if (scope === 'filtered') return getFilteredRecords();
+  if (scope === 'selected') return records.filter(r => selectedIds.has(r.id));
+  return records;
+}
+
+function updateExportPreview() {
+  const recs = getExportRecords();
+  const cols = [...document.querySelectorAll('#exportFieldsGrid input:checked')].length;
+  document.getElementById('exportPreviewText').textContent =
+    `${recs.length} record${recs.length !== 1 ? 's' : ''} · ${cols} column${cols !== 1 ? 's' : ''} will be exported`;
+}
+
+function doExport() {
+  const recs = getExportRecords();
+  if (!recs.length) { alert('No records to export.'); return; }
+
+  const selectedCols = EXPORT_FIELDS.filter(f => {
+    const chk = document.querySelector(`#exportFieldsGrid input[data-key="${f.key}"]`);
+    return chk && chk.checked;
+  });
+  if (!selectedCols.length) { alert('Please select at least one column.'); return; }
+
+  const boolKeys = new Set(TOGGLES.map(t => t.key));
+
+  // Build header row
+  const headers = selectedCols.map(f => f.label);
+
+  // Build data rows
+  const rows = recs.map(r => selectedCols.map(f => {
+    if (boolKeys.has(f.key)) return r[f.key] ? 'Yes' : 'No';
+    return r[f.key] || '';
+  }));
+
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+
+  // Column widths
+  ws['!cols'] = selectedCols.map(f => {
+    const max = Math.max(f.label.length, ...rows.map(r => String(r[selectedCols.indexOf(f)] || '').length));
+    return { wch: Math.min(Math.max(max + 2, 12), 40) };
+  });
+
+  // Style header row bold (basic)
+  const range = XLSX.utils.decode_range(ws['!ref']);
+  for (let c = range.s.c; c <= range.e.c; c++) {
+    const cell = ws[XLSX.utils.encode_cell({ r: 0, c })];
+    if (cell) cell.s = { font: { bold: true }, fill: { fgColor: { rgb: 'F5F5F3' } } };
+  }
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Employee Inventory');
+
+  // Add summary sheet
+  const now = new Date();
+  const summaryData = [
+    ['DeviceTrack — Employee Inventory Report'],
+    ['Generated', now.toLocaleString()],
+    ['Total records', recs.length],
+    ['Columns exported', selectedCols.length],
+    [],
+    ['— Software Access Summary —'],
+    ['NtoN Email enabled', recs.filter(r=>r.ntonEmail).length],
+    ['3CX MFA enabled',    recs.filter(r=>r.mfa3cx).length],
+    ['Monday MFA enabled', recs.filter(r=>r.mfaMonday).length],
+    ['Desktime MFA enabled',recs.filter(r=>r.mfaDesktime).length],
+    ['Nord enabled',        recs.filter(r=>r.nord).length],
+    ['Krisp enabled',       recs.filter(r=>r.krisp).length],
+  ];
+  const wsSummary = XLSX.utils.aoa_to_sheet(summaryData);
+  wsSummary['!cols'] = [{ wch: 28 }, { wch: 20 }];
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
+
+  const filename = (document.getElementById('exportFilename').value.trim() || 'employee-inventory') + '.xlsx';
+  XLSX.writeFile(wb, filename);
+  closeExportModal();
+  showToast(`${recs.length} record${recs.length!==1?'s':''} exported`, 'file-spreadsheet');
+}
+
 /* ===== DARK MODE ===== */
 function getSystemDark() { return window.matchMedia('(prefers-color-scheme: dark)').matches; }
 function applyTheme(dark) {
@@ -836,7 +1072,7 @@ function toggleTheme() {
   const dark = saved === 'dark' || (!saved && getSystemDark());
   applyTheme(dark);
 })();
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal(); closeConfirm(); closeImportModal(); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal(); closeConfirm(); closeImportModal(); closeExportModal(); } });
 
 renderTable();
 </script>
