@@ -50,8 +50,7 @@
   }
   html, body { overflow-x: hidden; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif; background: var(--bg-tertiary); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.5; transition: background .25s, color .25s; }
-
-  /* Dark mode toggle button */
+  .main { width: 100%; max-width: 100%; margin: 0 auto; padding: 1.5rem; }
   .theme-btn { cursor: pointer; border: 0.5px solid var(--border); background: var(--bg-secondary); color: var(--text-secondary); width: 34px; height: 34px; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; font-size: 16px; transition: background .15s, color .15s, border-color .15s; flex-shrink: 0; }
   .theme-btn:hover { background: var(--bg-tertiary); color: var(--text); border-color: var(--border-hover); }
 
@@ -226,6 +225,47 @@
   .toast.show { opacity: 1; }
   @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
+  /* ── Tabs ── */
+  .tabs { display: flex; gap: 0; border-bottom: 0.5px solid var(--border); background: var(--bg); padding: 0 1.5rem; position: sticky; top: 56px; z-index: 40; }
+  .tab-btn { padding: 12px 18px; font-size: 13px; font-family: inherit; background: none; border: none; border-bottom: 2px solid transparent; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 6px; transition: color .15s, border-color .15s; white-space: nowrap; margin-bottom: -0.5px; }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--text); border-bottom-color: var(--accent); font-weight: 500; }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── Scheduler ── */
+  .sched-toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 1.25rem; flex-wrap: wrap; }
+  .sched-controls { display: flex; align-items: center; gap: 8px; background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 12px 16px; margin-bottom: 1.25rem; flex-wrap: wrap; box-shadow: var(--shadow); }
+  .sched-controls label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+  .sched-controls input[type=date], .sched-controls select { padding: 7px 10px; border: 0.5px solid var(--border); border-radius: var(--radius); background: var(--bg); color: var(--text); font-size: 13px; font-family: inherit; }
+  .sched-controls input[type=date]:focus, .sched-controls select:focus { outline: none; border-color: var(--border-hover); }
+  .sched-sep { width: 0.5px; height: 24px; background: var(--border); margin: 0 4px; }
+  .sched-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; }
+  .sched-day-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); }
+  .sched-day-header { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; background: var(--bg-secondary); border-bottom: 0.5px solid var(--border); }
+  .sched-day-title { font-size: 13px; font-weight: 600; }
+  .sched-day-sub { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+  .sched-day-badge { font-size: 11px; padding: 2px 8px; border-radius: 99px; background: var(--info-bg); color: var(--info-text); font-weight: 500; }
+  .sched-names { padding: 8px 0; }
+  .sched-name-row { display: flex; align-items: center; gap: 10px; padding: 7px 14px; border-bottom: 0.5px solid var(--border); font-size: 13px; transition: background .1s; }
+  .sched-name-row:last-child { border-bottom: none; }
+  .sched-name-row:hover { background: var(--bg-secondary); }
+  .sched-name-row .num { font-size: 11px; color: var(--text-muted); width: 18px; flex-shrink: 0; text-align: right; }
+  .sched-name-row .sname { flex: 1; font-weight: 500; }
+  .sched-name-row .device { font-size: 11px; color: var(--text-muted); }
+  .sched-status { display: flex; align-items: center; gap: 4px; }
+  .sched-chk { width: 15px; height: 15px; cursor: pointer; accent-color: var(--accent); }
+  .sched-empty { text-align: center; padding: 3rem 1rem; color: var(--text-muted); }
+  .sched-empty i { font-size: 32px; display: block; margin-bottom: 8px; opacity: .3; }
+  .sched-empty p { font-size: 13px; }
+  .sched-summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 1.25rem; }
+  .sched-summary-card { background: var(--bg); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 12px 18px; flex: 1; min-width: 120px; box-shadow: var(--shadow); }
+  .sched-summary-card .sc-num { font-size: 22px; font-weight: 700; }
+  .sched-summary-card .sc-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; letter-spacing: .04em; }
+  .sched-summary-card.green .sc-num { color: var(--success-text); }
+  .sched-summary-card.blue .sc-num { color: var(--info-text); }
+  .sched-summary-card.yellow .sc-num { color: var(--warning-text); }
+
   @media (max-width: 640px) {
     .header { padding: 0 1rem; }
     .main { padding: 1rem; }
@@ -254,7 +294,20 @@
   </div>
 </header>
 
+<!-- Tab Navigation -->
+<nav class="tabs" role="tablist">
+  <button class="tab-btn active" id="tab-inventory" role="tab" aria-selected="true" onclick="switchTab('inventory')">
+    <i class="ti ti-device-laptop"></i> Inventory
+  </button>
+  <button class="tab-btn" id="tab-scheduler" role="tab" aria-selected="false" onclick="switchTab('scheduler')">
+    <i class="ti ti-calendar-check"></i> Maintenance Scheduler
+  </button>
+</nav>
+
 <main class="main">
+
+<!-- ══ INVENTORY TAB ══ -->
+<div class="tab-panel active" id="panel-inventory">
   <!-- Toolbar -->
   <div class="toolbar">
     <div class="search-wrap">
@@ -313,6 +366,67 @@
       </table>
     </div>
   </div>
+</div>
+
+<!-- ══ SCHEDULER TAB ══ -->
+<div class="tab-panel" id="panel-scheduler">
+  <!-- Controls -->
+  <div class="sched-controls">
+    <label for="schedStartDate">Start Date</label>
+    <input type="date" id="schedStartDate">
+    <div class="sched-sep"></div>
+    <label for="schedPerDay">Per Day</label>
+    <select id="schedPerDay">
+      <option value="5">5 names / day</option>
+      <option value="10">10 names / day</option>
+    </select>
+    <div class="sched-sep"></div>
+    <label for="schedDays">Days to schedule</label>
+    <select id="schedDays">
+      <option value="5">5 days</option>
+      <option value="10">10 days</option>
+      <option value="15">15 days</option>
+      <option value="20">20 days</option>
+    </select>
+    <div class="sched-sep"></div>
+    <label style="display:flex;align-items:center;gap:6px;cursor:pointer">
+      <input type="checkbox" id="schedSkipWeekends" checked style="accent-color:var(--accent)"> Skip weekends
+    </label>
+    <div class="sched-sep"></div>
+    <button class="btn primary" onclick="generateSchedule()"><i class="ti ti-refresh"></i> Randomize Schedule</button>
+    <button class="btn" onclick="exportSchedule()"><i class="ti ti-file-spreadsheet"></i> Export</button>
+    <button class="btn danger" onclick="clearSchedule()" style="margin-left:auto"><i class="ti ti-trash"></i> Clear</button>
+  </div>
+
+  <!-- Summary cards -->
+  <div class="sched-summary" id="schedSummary" style="display:none">
+    <div class="sched-summary-card blue">
+      <div class="sc-num" id="sc-days">0</div>
+      <div class="sc-label">Days Scheduled</div>
+    </div>
+    <div class="sched-summary-card">
+      <div class="sc-num" id="sc-total">0</div>
+      <div class="sc-label">Total Sessions</div>
+    </div>
+    <div class="sched-summary-card green">
+      <div class="sc-num" id="sc-done">0</div>
+      <div class="sc-label">Completed</div>
+    </div>
+    <div class="sched-summary-card yellow">
+      <div class="sc-num" id="sc-pending">0</div>
+      <div class="sc-label">Pending</div>
+    </div>
+  </div>
+
+  <!-- Schedule grid -->
+  <div class="sched-grid" id="schedGrid">
+    <div class="sched-empty" style="grid-column:1/-1">
+      <i class="ti ti-calendar-off" aria-hidden="true"></i>
+      <p>No schedule yet. Set a start date and click <strong>Randomize Schedule</strong>.</p>
+    </div>
+  </div>
+</div>
+
 </main>
 
 <!-- Edit/Add Modal -->
@@ -1159,6 +1273,209 @@ function doExport() {
   XLSX.writeFile(wb, filename);
   closeExportModal();
   showToast(`${recs.length} record${recs.length!==1?'s':''} exported`, 'file-spreadsheet');
+}
+
+/* ===== TABS ===== */
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(b => { b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('tab-'+tab).setAttribute('aria-selected','true');
+  document.getElementById('panel-'+tab).classList.add('active');
+  if (tab === 'scheduler') renderSchedule();
+}
+
+/* ===== SCHEDULER ===== */
+let scheduleData = []; // [{ date, dateStr, dayLabel, slots: [{ id, name, device, done }] }]
+try { scheduleData = JSON.parse(localStorage.getItem('devtrack_schedule') || '[]'); } catch(e){ scheduleData=[]; }
+
+function persistSchedule() { localStorage.setItem('devtrack_schedule', JSON.stringify(scheduleData)); }
+
+// Set default start date to today
+(function initSchedDate(){
+  const d = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  document.getElementById('schedStartDate').value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+})();
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getWorkdays(startDate, count, skipWeekends) {
+  const days = [];
+  const d = new Date(startDate + 'T00:00:00');
+  while (days.length < count) {
+    const dow = d.getDay(); // 0=Sun, 6=Sat
+    if (!skipWeekends || (dow !== 0 && dow !== 6)) {
+      days.push(new Date(d));
+    }
+    d.setDate(d.getDate() + 1);
+  }
+  return days;
+}
+
+function formatDateLabel(d) {
+  return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function formatDateKey(d) {
+  const pad = n => String(n).padStart(2,'0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+}
+
+function generateSchedule() {
+  if (!records.length) {
+    showToast('No employees in inventory to schedule.', 'alert-circle');
+    return;
+  }
+  const startDate = document.getElementById('schedStartDate').value;
+  if (!startDate) { showToast('Please pick a start date.', 'alert-circle'); return; }
+
+  const perDay     = parseInt(document.getElementById('schedPerDay').value);
+  const totalDays  = parseInt(document.getElementById('schedDays').value);
+  const skipWeek   = document.getElementById('schedSkipWeekends').checked;
+
+  const workdays = getWorkdays(startDate, totalDays, skipWeek);
+  const totalSlots = totalDays * perDay;
+
+  // Build pool — cycle through employees if fewer than totalSlots
+  let pool = [];
+  while (pool.length < totalSlots) {
+    pool = pool.concat(shuffleArray(records));
+  }
+  pool = pool.slice(0, totalSlots);
+  pool = shuffleArray(pool);
+
+  // Preserve done statuses from existing schedule if dates match
+  const doneMap = {};
+  scheduleData.forEach(day => {
+    day.slots.forEach(s => {
+      if (s.done) doneMap[day.dateStr + '_' + s.id] = true;
+    });
+  });
+
+  scheduleData = workdays.map((d, i) => {
+    const dateStr = formatDateKey(d);
+    const slots = pool.slice(i * perDay, (i + 1) * perDay).map(r => ({
+      id: r.id,
+      name: r.name || '(No name)',
+      device: r.deviceName || '',
+      done: doneMap[dateStr + '_' + r.id] || false,
+    }));
+    return { dateStr, dayLabel: formatDateLabel(d), slots };
+  });
+
+  persistSchedule();
+  renderSchedule();
+  showToast('Schedule generated!', 'calendar-check');
+}
+
+function toggleSlotDone(dateStr, slotId, checked) {
+  const day = scheduleData.find(d => d.dateStr === dateStr);
+  if (!day) return;
+  const slot = day.slots.find(s => s.id === slotId);
+  if (slot) slot.done = checked;
+  persistSchedule();
+  updateSchedSummary();
+}
+
+function updateSchedSummary() {
+  if (!scheduleData.length) { document.getElementById('schedSummary').style.display = 'none'; return; }
+  document.getElementById('schedSummary').style.display = 'flex';
+  const total = scheduleData.reduce((s, d) => s + d.slots.length, 0);
+  const done  = scheduleData.reduce((s, d) => s + d.slots.filter(sl=>sl.done).length, 0);
+  document.getElementById('sc-days').textContent    = scheduleData.length;
+  document.getElementById('sc-total').textContent   = total;
+  document.getElementById('sc-done').textContent    = done;
+  document.getElementById('sc-pending').textContent = total - done;
+}
+
+function renderSchedule() {
+  updateSchedSummary();
+  const grid = document.getElementById('schedGrid');
+
+  if (!scheduleData.length) {
+    grid.innerHTML = `<div class="sched-empty" style="grid-column:1/-1">
+      <i class="ti ti-calendar-off" aria-hidden="true"></i>
+      <p>No schedule yet. Set a start date and click <strong>Randomize Schedule</strong>.</p>
+    </div>`;
+    return;
+  }
+
+  const today = formatDateKey(new Date());
+
+  grid.innerHTML = scheduleData.map(day => {
+    const isToday = day.dateStr === today;
+    const isPast  = day.dateStr < today;
+    const doneCount = day.slots.filter(s=>s.done).length;
+    const allDone   = doneCount === day.slots.length;
+
+    const headerBg = isToday
+      ? 'background:var(--info-bg);border-bottom-color:var(--info-text)'
+      : allDone ? 'background:var(--success-bg)' : '';
+
+    const badge = allDone
+      ? `<span class="sched-day-badge" style="background:var(--success-bg);color:var(--success-text)">✓ Done</span>`
+      : isToday
+        ? `<span class="sched-day-badge">Today</span>`
+        : isPast
+          ? `<span class="sched-day-badge" style="background:var(--warning-bg);color:var(--warning-text)">${doneCount}/${day.slots.length}</span>`
+          : `<span class="sched-day-badge" style="background:var(--neutral-bg);color:var(--neutral-text)">${doneCount}/${day.slots.length}</span>`;
+
+    const rows = day.slots.map((s, i) => `
+      <div class="sched-name-row">
+        <span class="num">${i+1}</span>
+        <span class="sname">${esc(s.name)}</span>
+        <span class="device">${esc(s.device)}</span>
+        <label class="sched-status" title="Mark as done">
+          <input type="checkbox" class="sched-chk" ${s.done?'checked':''}
+            onchange="toggleSlotDone('${day.dateStr}','${s.id}',this.checked)">
+        </label>
+      </div>`).join('');
+
+    return `
+      <div class="sched-day-card">
+        <div class="sched-day-header" style="${headerBg}">
+          <div>
+            <div class="sched-day-title" style="${isToday?'color:var(--info-text)':allDone?'color:var(--success-text)':''}">${esc(day.dayLabel)}</div>
+            <div class="sched-day-sub">${day.slots.length} employee${day.slots.length!==1?'s':''} scheduled</div>
+          </div>
+          ${badge}
+        </div>
+        <div class="sched-names">${rows}</div>
+      </div>`;
+  }).join('');
+}
+
+function clearSchedule() {
+  if (!scheduleData.length) return;
+  if (!confirm('Clear the entire maintenance schedule? This cannot be undone.')) return;
+  scheduleData = [];
+  persistSchedule();
+  renderSchedule();
+  showToast('Schedule cleared', 'trash');
+}
+
+function exportSchedule() {
+  if (!scheduleData.length) { showToast('No schedule to export.', 'alert-circle'); return; }
+  const rows = [['Date', 'Day', '#', 'Employee Name', 'Device', 'Status']];
+  scheduleData.forEach(day => {
+    day.slots.forEach((s, i) => {
+      rows.push([day.dateStr, day.dayLabel, i+1, s.name, s.device, s.done ? 'Done' : 'Pending']);
+    });
+  });
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols'] = [14,26,4,24,20,10].map(w=>({wch:w}));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Maintenance Schedule');
+  XLSX.writeFile(wb, 'maintenance-schedule.xlsx');
+  showToast('Schedule exported', 'file-spreadsheet');
 }
 
 /* ===== DARK MODE ===== */
