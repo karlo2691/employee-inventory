@@ -569,6 +569,81 @@
 </div>
 
 <script>
+/* ===== SUPABASE CONFIG ===== */
+const SUPA_URL = 'https://xgpstpqxdqjmqawqznvb.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhncHN0cHF4ZHFqbXFhd3F6bnZiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5Nzk0OTAsImV4cCI6MjA5NjU1NTQ5MH0.JMXp1Wj9FSqMP8R-x9_NheJcC14vK_Zy26h6kFn57oM';
+
+async function sbFetch(path, options = {}) {
+  const res = await fetch(SUPA_URL + path, {
+    ...options,
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': options.prefer || '',
+      ...(options.headers || {})
+    }
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error('Supabase error ' + res.status + ': ' + err);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+// Map JS camelCase record to Supabase snake_case row
+function toRow(r) {
+  return {
+    id: r.id,
+    name: r.name || '',
+    device_name: r.deviceName || '',
+    serial: r.serial || '',
+    manufacturer: r.manufacturer || '',
+    model: r.model || '',
+    ram: r.ram || '',
+    cpu: r.cpu || '',
+    mouse: r.mouse || '',
+    keyboard: r.keyboard || '',
+    headset: r.headset || '',
+    prev_owner: r.prevOwner || '',
+    nton_email: r.ntonEmail || '',
+    mfa3cx: !!r.mfa3cx,
+    mfa_monday: !!r.mfaMonday,
+    mfa_desktime: !!r.mfaDesktime,
+    nord: !!r.nord,
+    krisp: !!r.krisp,
+    remarks: r.remarks || '',
+    created_at: r.createdAt || new Date().toISOString()
+  };
+}
+
+// Map Supabase snake_case row to JS camelCase record
+function fromRow(r) {
+  return {
+    id: r.id,
+    createdAt: r.created_at,
+    name: r.name || '',
+    deviceName: r.device_name || '',
+    serial: r.serial || '',
+    manufacturer: r.manufacturer || '',
+    model: r.model || '',
+    ram: r.ram || '',
+    cpu: r.cpu || '',
+    mouse: r.mouse || '',
+    keyboard: r.keyboard || '',
+    headset: r.headset || '',
+    prevOwner: r.prev_owner || '',
+    ntonEmail: r.nton_email || '',
+    mfa3cx: !!r.mfa3cx,
+    mfaMonday: !!r.mfa_monday,
+    mfaDesktime: !!r.mfa_desktime,
+    nord: !!r.nord,
+    krisp: !!r.krisp,
+    remarks: r.remarks || ''
+  };
+}
+
 /* ===== FIELD DEFINITIONS ===== */
 const FIELDS = [
   { section: 'Employee & Device Info' },
@@ -635,25 +710,61 @@ function autoMatch(col) {
 const SEED_DATA = [{"id": "emp_seed_0000", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Andrea Obidos", "deviceName": "NTON-6004E39D00", "serial": "NXJ53SP001516004E39D00", "manufacturer": "Acer", "model": "Aspire AL15-41P-R51N", "ram": "16GB", "cpu": "Ryzen 7 5700U", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "aobidos@nton.com.au", "mfa3cx": true, "mfaMonday": false, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0001", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Aaliyah Jaeye Candelario", "deviceName": "", "serial": "", "manufacturer": "", "model": "", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": false, "krisp": false, "remarks": ""}, {"id": "emp_seed_0002", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Aprylle Agravio", "deviceName": "NTON-PF3SYE3V", "serial": "PF3SYE3V", "manufacturer": "Lenovo", "model": "83ER", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "Leo Paul Gonzales", "ntonEmail": "Aprylle@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0003", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Archerie Salarda", "deviceName": "NTON-5160163400", "serial": "NXK5BSP001225160163400", "manufacturer": "Acer", "model": "Aspire A514-55", "ram": "8GB", "cpu": "Core i3", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "Archerie@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0004", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Arielle Jan Trofeo", "deviceName": "NTON-7ZM5000355", "serial": "9S71552661027ZM5000355", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "arielle@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0005", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Arlon Gicana", "deviceName": "NTON-7ZM5000164", "serial": "9S71552661027ZM5000164", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "agicana@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0006", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Arnold Calalas", "deviceName": "", "serial": "", "manufacturer": "", "model": "", "ram": "8GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": false, "nord": false, "krisp": false, "remarks": ""}, {"id": "emp_seed_0007", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Bea Katrina De Asis", "deviceName": "NTON-5161253400", "serial": "NXK5BSP001225161253400", "manufacturer": "Acer", "model": "Aspire A514-55", "ram": "16GB", "cpu": "Core i3", "mouse": "No", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "bea@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0008", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Carmela A. Balverde", "deviceName": "SI-9DD4GX3", "serial": "9DD4GX3", "manufacturer": "Dell Inc.", "model": "Latitude 3420", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "Carmela@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": false, "krisp": true, "remarks": ""}, {"id": "emp_seed_0009", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Catherine Dela Cruz", "deviceName": "NTON-2042D03400", "serial": "NXA1HSP001242042D03400", "manufacturer": "Acer", "model": "Aspire A515-56", "ram": "16GB", "cpu": "Core i3", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "Catherine@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0010", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Cherry Pangue", "deviceName": "NTON-6020023400", "serial": "NXK5KSP001226020023400", "manufacturer": "Acer", "model": "Aspire A514-55", "ram": "8GB", "cpu": "Core i3", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "cpangue@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0011", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Chloe Michelle Buyco", "deviceName": "", "serial": "", "manufacturer": "", "model": "", "ram": "", "cpu": "", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "Chloe@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": false, "remarks": ""}, {"id": "emp_seed_0012", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Christian Del Oeste", "deviceName": "", "serial": "", "manufacturer": "", "model": "", "ram": "12GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": false, "nord": false, "krisp": false, "remarks": ""}, {"id": "emp_seed_0013", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Christian Jaive Parreño", "deviceName": "NTON-PF4GZA41", "serial": "PF4GZA41", "manufacturer": "Lenovo", "model": "83ER", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "No", "prevOwner": "", "ntonEmail": "jparreno@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0014", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Christina Kay Dusaran", "deviceName": "NTON-6Y0KYJ3", "serial": "6Y0KYJ3", "manufacturer": "Dell Inc.", "model": "Vostro 15 3510", "ram": "16GB", "cpu": "Core i6", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "kay@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0015", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Clair Campos", "deviceName": "NTON-7ZM5000292", "serial": "9S71552661027ZM5000292", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "Joseph Alfajora", "ntonEmail": "Clair@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0016", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Crisha May Porras Tajonera", "deviceName": "SI-7ZM5000319", "serial": "9S71552661027ZM5000319", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "No", "keyboard": "No", "headset": "Yes", "prevOwner": "Seth Balibalos", "ntonEmail": "Crisha@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": false, "krisp": true, "remarks": ""}, {"id": "emp_seed_0017", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Cristlyn Martinez", "deviceName": "NTON-7ZM5000573", "serial": "9S71552661027ZM5000573", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "cmartinez@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0018", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Denise Del Oeste", "deviceName": "NTON-40486B3400", "serial": "NXK3JSP0012340486B3400", "manufacturer": "Acer", "model": "Aspire A515-57", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "denise@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0019", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Emanuel Gabriel Lizares", "deviceName": "NTON-70DBB53400", "serial": "NXK6TSP0073170DBB53400", "manufacturer": "Acer", "model": "Aspire A315-59", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "elizares@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0020", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Emil Omar Abelita", "deviceName": "NTON-PF4HDZFN", "serial": "PF4HDZFN", "manufacturer": "Lenovo", "model": "83ER", "ram": "16GB", "cpu": "Core i5", "mouse": "No", "keyboard": "No", "headset": "Yes", "prevOwner": "Gian Paolo Secreto", "ntonEmail": "Emil@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": false, "krisp": true, "remarks": ""}, {"id": "emp_seed_0021", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Ethel Joyce Tuazon", "deviceName": "NTON-7ZM5000557", "serial": "9S71552661027ZM5000557", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "ethel@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0022", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Euya Kusumoto", "deviceName": "NTON-PF4HDYKS", "serial": "PF4HDYKS", "manufacturer": "Lenovo", "model": "83ER", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "Dennis Ferales", "ntonEmail": "ekusumoto@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0023", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Francine Gayle Pasagdan", "deviceName": "NTON-524BA93400", "serial": "NXK60SP00122524BA93400", "manufacturer": "Acer", "model": "Aspire A514-55", "ram": "8GB", "cpu": "Core i3", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "francine@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0024", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Franz Balzomo", "deviceName": "NTON-3FD4GX3", "serial": "3FD4GX3", "manufacturer": "Dell Inc.", "model": "Latitude 3420", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "Franz@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0025", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Fretzee Rose Arevalo", "deviceName": "NTON-601DF43400", "serial": "NXK5KSP00122601DF43400", "manufacturer": "Acer", "model": "Aspire A514-55", "ram": "8GB", "cpu": "Core i3", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "farevalo@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0026", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Gabriel Garcia", "deviceName": "NTON-BZFKYH3", "serial": "BZFKYH3", "manufacturer": "Dell Inc.", "model": "Inspiron 15 3511", "ram": "8GB", "cpu": "Core i3", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "ggarcia@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0027", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Gerryl Therese Gepolio", "deviceName": "NTON-15FB173", "serial": "15FB173", "manufacturer": "Dell Inc.", "model": "Vostro 3401", "ram": "16GB", "cpu": "Core i3", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "Gerryl@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0028", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Grace Mary Sombria", "deviceName": "NTON-601F053400", "serial": "NXK5KSP00122601F053400", "manufacturer": "Acer", "model": "Aspire A514-55", "ram": "8GB", "cpu": "Core i3", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "Grace@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0029", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Hannah Cordova", "deviceName": "NTON-7ZM5000312", "serial": "9S71552661027ZM5000312", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "Jieves Mogar", "ntonEmail": "hcordova@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0030", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Ian Joshua Pango", "deviceName": "NTON-PF4HDZFN", "serial": "9S71552661027ZM5000527", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "No", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "ian@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0031", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Ilen Lacson", "deviceName": "NTON-7ZM5000002", "serial": "9S71552661027ZM5000002", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "ilacson@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0032", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Ime Dela Cruz", "deviceName": "NTON-0043F9D00", "serial": "NXJ53SP0015160043F9D00", "manufacturer": "Acer", "model": "Aspire AL15-41P", "ram": "16GB", "cpu": "Ryzen 7 5700U", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "idelacruz@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0033", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Ingrid Joy Donasco", "deviceName": "NTON-6021283400", "serial": "NXK5KSP001226021283400", "manufacturer": "Acer", "model": "Aspire A514-55", "ram": "8GB", "cpu": "Core i3", "mouse": "No", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "idonasco@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0034", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Jade Magalona", "deviceName": "NTON-1B8KYH3", "serial": "1B8KYH3", "manufacturer": "Dell Inc.", "model": "Inspiron 15 3511", "ram": "16GB", "cpu": "Core i3", "mouse": "No", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "Jade@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0035", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Jam Juaniza", "deviceName": "", "serial": "", "manufacturer": "", "model": "", "ram": "", "cpu": "", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "jjuaniza@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": false, "remarks": ""}, {"id": "emp_seed_0036", "createdAt": "2026-06-09T00:00:00.000Z", "name": "James Larracas", "deviceName": "BCSG-CFD4GX3", "serial": "CFD4GX3", "manufacturer": "Dell Inc.", "model": "Latitude 3420", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "jlarracas@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0037", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Jan Michael Obero", "deviceName": "NTON-2DD4GX3", "serial": "2DD4GX3", "manufacturer": "Dell Inc.", "model": "Latitude 3420", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "JMObero@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0038", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Jannah Katrina Parcon", "deviceName": "NTON-7ZM5000290", "serial": "9S71552661027ZM5000290", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "jparcon@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": false, "remarks": ""}, {"id": "emp_seed_0039", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Jasty Panisales", "deviceName": "NTON-5255FA3400", "serial": "NXK60SP001225255FA3400", "manufacturer": "Acer", "model": "Aspire A514-55", "ram": "8GB", "cpu": "Core i3", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "jpanisales@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0040", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Jaymark Morales", "deviceName": "NTON-7ZM5000544", "serial": "9S71552661027ZM5000544", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "jmorales@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0041", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Jeruel Lipura Jereos", "deviceName": "NTON-20433A3400", "serial": "NXA1HSP0012420433A3400", "manufacturer": "Acer", "model": "Aspire A515-56", "ram": "16GB", "cpu": "Core i3", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "Jeruel@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0042", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Jhouana De Leon", "deviceName": "NTON-5GD4GX3", "serial": "5GD4GX3", "manufacturer": "Dell Inc.", "model": "Latitude 3420", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "Jhouana@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0043", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Jiggs Candelario", "deviceName": "NTON-PF4H2PP8", "serial": "PF4H2PP8", "manufacturer": "Lenovo", "model": "83ER", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "Jiggs@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0044", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Joefel Javelona", "deviceName": "NTON-6001953400", "serial": "NXK60SP001226001953400", "manufacturer": "Acer", "model": "Aspire A514-55", "ram": "8GB", "cpu": "Core i3", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "jjavelona@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": false, "krisp": false, "remarks": ""}, {"id": "emp_seed_0045", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Johann Piccio", "deviceName": "NTON-1G6TGB3", "serial": "1G6TGB3", "manufacturer": "Dell Inc.", "model": "Inspiron 3501", "ram": "12GB", "cpu": "Core i3", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "jpiccio@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0046", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Joshua de los Reyes", "deviceName": "BCSG-6FD4GX3", "serial": "6FD4GX3", "manufacturer": "Dell Inc.", "model": "Latitude 3420", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "joshua@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0047", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Jude Apostol", "deviceName": "NTON-7ZM5000212", "serial": "9S71552661027ZM5000212", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "jude@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0048", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Julie Ann Domingo", "deviceName": "NTON-8TQ5GX3", "serial": "8TQ5GX3", "manufacturer": "Dell Inc.", "model": "Latitude 3420", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "julie@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0049", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Julie Mhar Cabalog", "deviceName": "", "serial": "", "manufacturer": "", "model": "", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": false, "krisp": false, "remarks": ""}, {"id": "emp_seed_0050", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Karlo Emanuel Baylon", "deviceName": "", "serial": "", "manufacturer": "", "model": "", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "karlo@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0051", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Kier Aburido", "deviceName": "NTON-60065F9D00", "serial": "NXJ53SP0015160065F9D00", "manufacturer": "Acer", "model": "Aspire Lite AL15-41P-R51N", "ram": "32GB", "cpu": "Ryzen 7 5700U", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "kier@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0052", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Kim Landero", "deviceName": "SI-PF4HE8Y0", "serial": "PF4HE8Y0", "manufacturer": "Lenovo", "model": "83ER", "ram": "16GB", "cpu": "Core i5", "mouse": "No", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "Kim@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": false, "krisp": false, "remarks": ""}, {"id": "emp_seed_0053", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Kristine Dayanan", "deviceName": "NTON-52548F3400", "serial": "NXK60SP0012252548F3400", "manufacturer": "Acer", "model": "Aspire A514-55", "ram": "8GB", "cpu": "Core i3", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "Kristine@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0054", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Leah Rose Leibik", "deviceName": "SI-3170DC213400", "serial": "NXK6TSP0073170DC213400", "manufacturer": "Acer", "model": "Aspire A315-59", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "Leah@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": false, "krisp": true, "remarks": ""}, {"id": "emp_seed_0055", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Loreshel Dilag", "deviceName": "NTON-601DAA3400", "serial": "NXK5KSP00122601DAA3400", "manufacturer": "Acer", "model": "Aspire A514-55", "ram": "8GB", "cpu": "Core i3", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "loreshel@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0056", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Lovely Vibero", "deviceName": "SI-027ZM5000118", "serial": "9S71552661027ZM5000118", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "Alliah Agravio", "ntonEmail": "Aprylle@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": false, "krisp": true, "remarks": ""}, {"id": "emp_seed_0057", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Ma Victoria Seva", "deviceName": "NTON-0045BA2N00", "serial": "NXJ50SP003450045BA2N00", "manufacturer": "Acer", "model": "Aspire AG15-51P", "ram": "32GB", "cpu": "Core i5", "mouse": "No", "keyboard": "No", "headset": "No", "prevOwner": "", "ntonEmail": "nikki@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0058", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Ma. Nica Quipot", "deviceName": "NTON-15ZHYH3", "serial": "15ZHYH3", "manufacturer": "Dell Inc.", "model": "Inspiron 15 3512", "ram": "8GB", "cpu": "Core i3", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "Nica@nton.com.au", "mfa3cx": false, "mfaMonday": false, "mfaDesktime": false, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0059", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Maricar Arciaga", "deviceName": "NTON-7ZM5000291", "serial": "9S71552661027ZM5000291", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "marciaga@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0060", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Marieliza Villatito", "deviceName": "NTON-7ZM5000031", "serial": "9S71552661027ZM5000031", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "mariel@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": false, "krisp": false, "remarks": ""}, {"id": "emp_seed_0061", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Marylyn Garcera", "deviceName": "NTON-7ZM5000311", "serial": "9S71552661027ZM5000311", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "mgarcera@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0062", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Melgin Jusayan", "deviceName": "NTON-7ZM5000473", "serial": "9S71552661027ZM5000473", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "melgin@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0063", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Mica Chantelle Puey", "deviceName": "BCSG-30083C4500", "serial": "NXD4BSP0015230083C4500", "manufacturer": "Acer", "model": "Aspire AL15-72P", "ram": "16GB", "cpu": "Core i5", "mouse": "No", "keyboard": "No", "headset": "No", "prevOwner": "", "ntonEmail": "Mpuey@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0064", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Mica Maestrecampo", "deviceName": "NTON-4016BF4500", "serial": "NXD4BSP001524016BF4500", "manufacturer": "Acer", "model": "Aspire AL15-72P", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "Angelo Pabuhat", "ntonEmail": "Mmaestrecampo@nton.com.au", "mfa3cx": true, "mfaMonday": false, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0065", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Michael Abella", "deviceName": "SI-PF4HE8Y0", "serial": "PF4HE8Y0", "manufacturer": "Lenovo", "model": "83ER", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "mabella@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": false, "krisp": true, "remarks": ""}, {"id": "emp_seed_0066", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Michael Bobe", "deviceName": "NTON-40440F3400", "serial": "NXK3JSP0012340440F3400", "manufacturer": "Acer", "model": "Aspire A515-57", "ram": "16GB", "cpu": "Core i5", "mouse": "No", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "michaelb@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0067", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Mike RJ Zapanta", "deviceName": "SI-3170DC043400", "serial": "NXK6TSP0073170DC043400", "manufacturer": "Acer", "model": "Aspire A315-59", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "Benedict Longno", "ntonEmail": "MZapanta@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0068", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Mikhael John Abelita", "deviceName": "SI-204021487600", "serial": "NXVPXSP03C204021007600", "manufacturer": "Acer", "model": "TravelMate P215-53G", "ram": "8GB", "cpu": "Core i5", "mouse": "No", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "Mikhael@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": false, "krisp": true, "remarks": ""}, {"id": "emp_seed_0069", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Monica Reyes", "deviceName": "NTON-11AB517600", "serial": "NXVPXSP0012211AB517600", "manufacturer": "Acer", "model": "TravelMate P215-53G", "ram": "32GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "Anthon Regalado", "ntonEmail": "mreyes@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0070", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Noel Banesio Jr.", "deviceName": "NTON-2011BE7600", "serial": "NXVPXSP001222011BE7600", "manufacturer": "Acer", "model": "TravelMate P215-53G", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "Nbanesio@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0071", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Phil June Marin", "deviceName": "SI-B1JQMJ3", "serial": "B1JQMJ3", "manufacturer": "Dell Inc.", "model": "Inspiron 15 3511", "ram": "8GB", "cpu": "Core i3", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "Phil@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": false, "krisp": true, "remarks": ""}, {"id": "emp_seed_0072", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Queenie Hope Bobon", "deviceName": "", "serial": "", "manufacturer": "", "model": "", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": false, "krisp": false, "remarks": ""}, {"id": "emp_seed_0073", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Ramil Palparan", "deviceName": "NTON-8DMBYH3", "serial": "8DMBYH3", "manufacturer": "Dell Inc.", "model": "Inspiron 15 3511", "ram": "16GB", "cpu": "Core i3", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "ramil@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0074", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Randolf Nicholas Marcile Isubal", "deviceName": "NTON-7ZM5000306", "serial": "9S71552661027ZM5000306", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "risubal@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0075", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Reyna Magbanua", "deviceName": "NTON-PF3T134D", "serial": "PF3T134D", "manufacturer": "Lenovo", "model": "83ER", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "Reyna@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0076", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Rica Grace Arro", "deviceName": "NTON-7ZM5000273", "serial": "9S71552661027ZM5000273", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "Princess Abigail Detablan", "ntonEmail": "rarro@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": false, "nord": false, "krisp": false, "remarks": ""}, {"id": "emp_seed_0077", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Rosa Andrea Mondia", "deviceName": "NTON-7ZM5000327", "serial": "9S71552661027ZM5000327", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "rosa@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0078", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Rudy S. Batucan", "deviceName": "", "serial": "", "manufacturer": "", "model": "", "ram": "24GB", "cpu": "Core i3", "mouse": "No", "keyboard": "No", "headset": "No", "prevOwner": "", "ntonEmail": "", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": false, "krisp": false, "remarks": ""}, {"id": "emp_seed_0079", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Sany Peter Demegillo", "deviceName": "", "serial": "", "manufacturer": "", "model": "", "ram": "8GB", "cpu": "Core i3", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": false, "krisp": false, "remarks": ""}, {"id": "emp_seed_0080", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Sheila Jean Serra", "deviceName": "NTON-402007600", "serial": "NXVPXSP03C204021007600", "manufacturer": "Acer", "model": "TravelMate P215-53G", "ram": "16GB", "cpu": "Core i5", "mouse": "No", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "shiela@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0081", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Stephanie Narciso", "deviceName": "NTON- 7ZM5000579", "serial": "9S71552661027ZM5000579", "manufacturer": "MSI", "model": "Modern 15 A11M", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "Grace Vergara", "ntonEmail": "stephanie@nton.com.au", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0082", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Stephen David Seva", "deviceName": "NTON-3WQNMJ3", "serial": "3WQNMJ3", "manufacturer": "Dell Inc.", "model": "Inspiron 15 3511", "ram": "8GB", "cpu": "Core i3", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "david@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0083", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Teejay Encarnado", "deviceName": "NTON-VST4ONQ2", "serial": "NXJ53SP001516005079D00", "manufacturer": "Acer", "model": "Aspire AL15-41P-R51N", "ram": "16GB", "cpu": "Core i6", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "tencarnado@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": true, "krisp": true, "remarks": ""}, {"id": "emp_seed_0084", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Zaldave Gabiason", "deviceName": "", "serial": "", "manufacturer": "", "model": "", "ram": "", "cpu": "", "mouse": "Yes", "keyboard": "No", "headset": "Yes", "prevOwner": "", "ntonEmail": "", "mfa3cx": false, "mfaMonday": true, "mfaDesktime": false, "nord": false, "krisp": false, "remarks": ""}, {"id": "emp_seed_0085", "createdAt": "2026-06-09T00:00:00.000Z", "name": "Zybelle Lamasan", "deviceName": "SI-7DD4GX3", "serial": "7DD4GX3", "manufacturer": "Dell Inc.", "model": "Latitude 3420", "ram": "16GB", "cpu": "Core i5", "mouse": "Yes", "keyboard": "Yes", "headset": "Yes", "prevOwner": "", "ntonEmail": "Zybelle@nton.com.au", "mfa3cx": true, "mfaMonday": true, "mfaDesktime": true, "nord": false, "krisp": false, "remarks": ""}];
 
 let records = [];
-(function initRecords() {
+let dbLoaded = false;
+
+async function loadFromDB() {
+  showLoadingState(true);
   try {
-    const stored = localStorage.getItem('devtrack_v1');
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      if (parsed && parsed.length > 0) { records = parsed; return; }
+    const rows = await sbFetch('/rest/v1/employees?select=*&order=name.asc');
+    if (rows && rows.length > 0) {
+      records = rows.map(fromRow);
+      dbLoaded = true;
+    } else {
+      // First time — seed the database with the embedded data
+      await seedDatabase();
     }
-  } catch(e){}
-  // First visit — load embedded seed data
-  records = SEED_DATA.map(r => ({...r}));
-  localStorage.setItem('devtrack_v1', JSON.stringify(records));
-})();
+  } catch(e) {
+    console.error('DB load failed:', e);
+    showToast('Could not connect to database. Check your connection.', 'alert-circle');
+  }
+  showLoadingState(false);
+  renderTable();
+  if (document.getElementById('panel-scheduler').classList.contains('active')) renderSchedule();
+}
+
+async function seedDatabase() {
+  // Insert all 86 records in one batch
+  const rows = SEED_DATA.map(toRow);
+  try {
+    await sbFetch('/rest/v1/employees', {
+      method: 'POST',
+      prefer: 'return=minimal',
+      body: JSON.stringify(rows)
+    });
+    records = SEED_DATA.map(r => ({...r}));
+    dbLoaded = true;
+  } catch(e) {
+    console.error('Seed failed:', e);
+  }
+}
+
+function showLoadingState(loading) {
+  const tbody = document.getElementById('tableBody');
+  if (loading) {
+    tbody.innerHTML = `<tr><td colspan="14"><div class="empty">
+      <i class="ti ti-loader" style="animation:spin 1s linear infinite;font-size:28px;display:block;margin-bottom:8px;opacity:.5"></i>
+      <p>Connecting to database…</p>
+    </div></td></tr>`;
+  }
+}
 let editId = null;
 let selectedIds = new Set();
 let activeFilter = 'all';
 let searchQuery = '';
 let pendingDeleteIds = [];   // ids to delete in confirm modal
 
-function persist() { localStorage.setItem('devtrack_v1', JSON.stringify(records)); }
+// persist() is now a no-op — all writes go directly to Supabase via sbInsert/sbUpdate/sbDelete
+function persist() { /* handled by Supabase directly */ }
 
 /* ===== UTILS ===== */
 function pill(val) { return val ? '<span class="pill yes">Yes</span>' : '<span class="pill no">No</span>'; }
@@ -838,12 +949,26 @@ function openBulkDeleteConfirm() {
   );
 }
 
-function executeDelete() {
+async function executeDelete() {
   const count = pendingDeleteIds.length;
-  records = records.filter(r=>!pendingDeleteIds.includes(r.id));
-  pendingDeleteIds.forEach(id=>selectedIds.delete(id));
-  persist(); renderTable(); closeConfirm(); updateSelectionBar();
-  showToast(`${count} record${count!==1?'s':''} deleted`, 'trash');
+  const btn = document.getElementById('confirmDeleteBtn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Deleting…'; }
+  try {
+    // Delete in one request using `in` filter
+    const ids = pendingDeleteIds.map(id => '"' + id + '"').join(',');
+    await sbFetch('/rest/v1/employees?id=in.(' + ids + ')', {
+      method: 'DELETE',
+      prefer: 'return=minimal'
+    });
+    records = records.filter(r => !pendingDeleteIds.includes(r.id));
+    pendingDeleteIds.forEach(id => selectedIds.delete(id));
+    renderTable(); closeConfirm(); updateSelectionBar();
+    showToast(`${count} record${count!==1?'s':''} deleted`, 'trash');
+  } catch(e) {
+    showToast('Delete failed: ' + e.message, 'alert-circle');
+    console.error(e);
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-trash"></i> Delete'; }
+  }
 }
 
 /* ===== EDIT MODAL ===== */
@@ -885,20 +1010,40 @@ function getFormData() {
   TOGGLES.forEach(t=>{ const el=document.getElementById('f_'+t.key); d[t.key]=el?el.checked:false; });
   return d;
 }
-function saveRecord() {
-  const d=getFormData();
-  if(!d.name){ alert('Name is required.'); document.getElementById('f_name').focus(); return; }
-  if(editId) {
-    const i=records.findIndex(r=>r.id===editId);
-    if(i>-1) records[i]={...records[i],...d};
-    showToast('Record updated');
-  } else {
-    d.id='emp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-    d.createdAt=new Date().toISOString();
-    records.unshift(d);
-    showToast('Employee added');
+async function saveRecord() {
+  const d = getFormData();
+  if (!d.name) { alert('Name is required.'); document.getElementById('f_name').focus(); return; }
+  const btn = document.querySelector('#overlay .btn.primary');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader" style="animation:spin 1s linear infinite"></i> Saving…'; }
+  try {
+    if (editId) {
+      d.id = editId;
+      await sbFetch('/rest/v1/employees?id=eq.' + encodeURIComponent(editId), {
+        method: 'PATCH',
+        prefer: 'return=minimal',
+        body: JSON.stringify(toRow(d))
+      });
+      const i = records.findIndex(r => r.id === editId);
+      if (i > -1) records[i] = { ...records[i], ...d };
+      showToast('Record updated');
+    } else {
+      d.id = 'emp_' + Date.now() + '_' + Math.random().toString(36).slice(2,6);
+      d.createdAt = new Date().toISOString();
+      await sbFetch('/rest/v1/employees', {
+        method: 'POST',
+        prefer: 'return=minimal',
+        body: JSON.stringify(toRow(d))
+      });
+      records.unshift(d);
+      showToast('Employee added');
+    }
+    renderTable(); closeModal();
+  } catch(e) {
+    showToast('Save failed: ' + e.message, 'alert-circle');
+    console.error(e);
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i class="ti ti-check"></i> Save Record'; }
   }
-  persist(); renderTable(); closeModal();
 }
 
 /* ===== IMPORT MODAL ===== */
@@ -1114,11 +1259,26 @@ function doImport() {
     const rec={};
     mappedFields.forEach(([col,key])=>{ const isBool=TOGGLES.find(t=>t.key===key); rec[key]=isBool?parseBool(row[col]):String(row[col]||'').trim(); });
     if(!rec.name){ skipped++; return; }
-    rec.id='emp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)+'_'+added;
+    rec.id='imp_'+Date.now()+'_'+Math.random().toString(36).slice(2,6)+'_'+added;
     rec.createdAt=new Date().toISOString();
     records.push(rec); added++;
   });
-  persist(); renderTable(); closeImportModal();
+  // Upsert all new records to Supabase
+  const rows = records.filter(r => r.id.startsWith('imp_')).map(toRow);
+  if (rows.length) {
+    try {
+      await sbFetch('/rest/v1/employees', {
+        method: 'POST',
+        prefer: 'resolution=merge-duplicates,return=minimal',
+        body: JSON.stringify(rows)
+      });
+    } catch(e) {
+      showToast('Import DB write failed: ' + e.message, 'alert-circle');
+      console.error(e);
+      return;
+    }
+  }
+  renderTable(); closeImportModal();
   showToast(`${added} record${added!==1?'s':''} imported${skipped?' ('+skipped+' skipped)':''}`, 'file-import');
 }
 
@@ -1513,7 +1673,7 @@ function toggleTheme() {
 })();
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeModal(); closeConfirm(); closeImportModal(); closeExportModal(); } });
 
-renderTable();
+loadFromDB();
 </script>
 </body>
 </html>
